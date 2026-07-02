@@ -426,7 +426,7 @@ body {
 }
 
 .victory-modal .modal-btn.primary {
-  background: linear-gradient(to bottom, #2ecc71, #27ae60);
+  background: linear-gradient(to bottom, #daa520, #b8860b);
 }
 
 .modal-btn.primary:hover {
@@ -443,4 +443,85 @@ body {
 .modal-btn.secondary:hover {
   border-color: #8b6914;
   color: #111;
+}
+
+/* Victory Overlay Backdrop & Confetti Cannon Styles */
+.modal-overlay.victory-active {
+  background-color: rgba(15, 23, 42, 0.45) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.rescued-banner-container {
+  background: linear-gradient(135deg, #fffcf5 0%, #fff7e6 100%) !important;
+  border: 3.5px solid #d4af37 !important; /* Satin gold frame border */
+  box-shadow: 0 20px 50px rgba(184, 134, 11, 0.28) !important;
+}
+
+.rescued-title {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  font-size: 2.2rem !important;
+  background: linear-gradient(to right, #b8860b 0%, #daa520 50%, #b8860b 100%);
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  font-weight: 900 !important;
+  letter-spacing: 2px;
+  margin-bottom: 6px !important;
+}
+
+/* Bouncy scale popup */
+.animate-bounce-pop {
+  animation: bounce-pop-key 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes bounce-pop-key {
+  0% { transform: scale(0.3); opacity: 0; }
+  50% { transform: scale(1.1); }
+  70% { transform: scale(0.95); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Confetti cannon positioning */
+.confetti-cannon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.confetti-particle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  will-change: transform, opacity;
+  animation: confetti-explode-key 2.2s cubic-bezier(0.1, 0.8, 0.25, 1) forwards;
+}
+
+.confetti-particle.shape-circle {
+  border-radius: 50%;
+}
+
+.confetti-particle.shape-square {
+  border-radius: 2px;
+}
+
+@keyframes confetti-explode-key {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate3d(var(--tx), var(--ty), 0) rotate(var(--rot));
+    opacity: 0;
+  }
 }

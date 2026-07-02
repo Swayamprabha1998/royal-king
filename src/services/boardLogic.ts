@@ -36,15 +36,15 @@ export const LEVELS: Record<number, LevelConfig> = {
     name: 'The Dungeon Cellar',
     targetCoins: 12,
     initialWaterLevel: 1, // Only 1 row flooded
-    waterRiseRate: 2,     // 2% rise per move
-    movesLimit: 25,
+    waterRiseRate: 2.2,   // rise per second
+    movesLimit: 40,
     hasAlgae: false,
     hasValves: false,
     algaeCount: 0,
     tutorialText: [
       "Let's save the King! Swap adjacent candies to match 3 or more of the same type.",
       "Earn 1 Coin for each Gold Coin matched directly or collected by matching adjacent candies!",
-      "Watch the water level! It rises after every move. Save him before the water fills the chamber."
+      "Watch out! Water pours constantly in real-time. Match any candies to drain it slightly!"
     ]
   },
   2: {
@@ -52,8 +52,8 @@ export const LEVELS: Record<number, LevelConfig> = {
     name: 'The Flooding Chamber',
     targetCoins: 20,
     initialWaterLevel: 3, // 3 rows flooded
-    waterRiseRate: 3,     // 3% rise per move
-    movesLimit: 28,
+    waterRiseRate: 3.0,
+    movesLimit: 40,
     hasAlgae: false,
     hasValves: false,
     algaeCount: 0,
@@ -66,8 +66,8 @@ export const LEVELS: Record<number, LevelConfig> = {
     name: 'The Rusty Valves',
     targetCoins: 25,
     initialWaterLevel: 4,
-    waterRiseRate: 4,
-    movesLimit: 30,
+    waterRiseRate: 3.5,
+    movesLimit: 45,
     hasAlgae: false,
     hasValves: true,
     algaeCount: 0,
@@ -80,8 +80,8 @@ export const LEVELS: Record<number, LevelConfig> = {
     name: 'The Algae Garden',
     targetCoins: 25,
     initialWaterLevel: 3,
-    waterRiseRate: 3,
-    movesLimit: 32,
+    waterRiseRate: 3.0,
+    movesLimit: 45,
     hasAlgae: true,
     hasValves: true,
     algaeCount: 12,
@@ -94,13 +94,13 @@ export const LEVELS: Record<number, LevelConfig> = {
     name: 'The Deep Escape',
     targetCoins: 35,
     initialWaterLevel: 5,
-    waterRiseRate: 5, // Fast rise!
-    movesLimit: 30,
+    waterRiseRate: 4.5, // Fast rise!
+    movesLimit: 45,
     hasAlgae: true,
     hasValves: true,
     algaeCount: 16,
     tutorialText: [
-      "This is the final chamber! The water rises extremely fast here (5% per turn). Rescue the King!"
+      "This is the final chamber! The water rises extremely fast in real-time. Rescue the King!"
     ]
   }
 };

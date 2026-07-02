@@ -59,7 +59,7 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
           <ul>
             <li>Swipe adjacent candies to make matches of 3 or more.</li>
             <li>Earn <strong>1 Coin</strong> for each Gold Coin matched directly or collected by matching adjacent candies!</li>
-            <li>Watch out! Water rises after every move. If it fills the cell (100%), the King drowns.</li>
+            <li>Watch out! Water pours constantly in real-time. Match any candies to drain it slightly!</li>
             <li>In flooded rows, candies float <strong>UP</strong>. In dry rows, they fall <strong>DOWN</strong>.</li>
           </ul>
         </div>

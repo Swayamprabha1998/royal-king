@@ -101,8 +101,9 @@ const App: React.FC = () => {
     setActiveTutorialIndex,
     toggleSound,
     setGameState,
-    handleTileSwap,
-    floatingCoins
+    floatingCoins,
+    brokenTiles,
+    handleTileSwap
   } = useGameState() as any; // Cast for simpler swap access
 
   // Manual wrapper for swaps from GameBoard
@@ -192,9 +193,10 @@ const App: React.FC = () => {
                   grid={grid}
                   selectedTile={selectedTile}
                   waterLevelRow={waterLevelRow}
-                  isBoardLocked={isBoardLocked}
+                  isBoardLocked={isBoardLocked || gameState === 'escaping'}
                   onSelectTile={handleSelectTile}
                   onSwapTiles={onSwapTiles}
+                  brokenTiles={brokenTiles}
                 />
 
                 {/* Floating Coins Overlay */}
@@ -243,12 +245,12 @@ const App: React.FC = () => {
               </div>
             )}
 
-            {/* 3. Victory Popup */}
+            {/* 3. Victory Popup with Confetti Celebration */}
             {gameState === 'victory' && (
-              <div className="modal-overlay">
-                <div className="endgame-modal victory-modal">
-                  <h2 className="modal-title">CHAMBER SECURED!</h2>
-                  <p className="modal-reason">You collected enough coins and saved the King!</p>
+              <div className="modal-overlay victory-active">
+                <div className="endgame-modal victory-modal rescued-banner-container">
+                  <h2 className="modal-title rescued-title animate-bounce-pop">KING RESCUED!!!</h2>
+                  <p className="modal-reason">The dungeon door has opened and the King escaped safely!</p>
                   <p className="modal-stats">Score: {score} | Moves Remaining: {movesRemaining}</p>
                   <div className="modal-actions">
                     {currentLevelId < 5 ? (
@@ -270,6 +272,38 @@ const App: React.FC = () => {
                       Back to Map
                     </button>
                   </div>
+                </div>
+
+                {/* Confetti Explosion System */}
+                <div className="confetti-cannon">
+                  {Array.from({ length: 60 }).map((_, i) => {
+                    const size = Math.random() * 11 + 6;
+                    const color = ['#ff2d55', '#ff9500', '#ffcc00', '#4cd964', '#5ac8fa', '#007aff', '#5856d6', '#ffeb60'][Math.floor(Math.random() * 8)];
+                    const angle = Math.random() * 360;
+                    const delay = Math.random() * 0.7;
+                    const duration = Math.random() * 1.5 + 1.2;
+                    const distance = Math.random() * 200 + 100;
+                    const tx = Math.cos((angle * Math.PI) / 180) * distance;
+                    const ty = Math.sin((angle * Math.PI) / 180) * distance - 60;
+                    const shape = Math.random() > 0.45 ? 'circle' : 'square';
+                    
+                    return (
+                      <div
+                        key={i}
+                        className={`confetti-particle shape-${shape}`}
+                        style={{
+                          width: `${size}px`,
+                          height: `${size}px`,
+                          backgroundColor: color,
+                          '--tx': `${tx}px`,
+                          '--ty': `${ty}px`,
+                          '--rot': `${Math.random() * 720 - 360}deg`,
+                          animationDelay: `${delay}s`,
+                          animationDuration: `${duration}s`,
+                        } as React.CSSProperties}
+                      />
+                    );
+                  })}
                 </div>
               </div>
             )}

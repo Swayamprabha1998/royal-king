@@ -1,6 +1,6 @@
 // Custom React Hook for Game State Management
-import { useState, useRef } from 'react';
-import type { GridState, LevelConfig } from '../services/boardLogic';
+import { useState, useRef, useEffect } from 'react';
+import type { GridState, LevelConfig, TileType } from '../services/boardLogic';
 import { 
   LEVELS, 
   createInitialBoard, 
@@ -19,13 +19,14 @@ export function useGameState() {
   const [waterLevel, setWaterLevel] = useState(0); // 0 to 100 %
   const [movesRemaining, setMovesRemaining] = useState(0);
   const [score, setScore] = useState(0);
-  const [gameState, setGameState] = useState<'menu' | 'playing' | 'tutorial' | 'gameover' | 'victory'>('menu');
+  const [gameState, setGameState] = useState<'menu' | 'playing' | 'tutorial' | 'gameover' | 'escaping' | 'victory'>('menu');
   const [activeTutorialIndex, setActiveTutorialIndex] = useState(0);
   const [selectedTile, setSelectedTile] = useState<{ r: number; c: number } | null>(null);
   const [isBoardLocked, setIsBoardLocked] = useState(false);
   const [highestLevelUnlocked, setHighestLevelUnlocked] = useState(1);
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [floatingCoins, setFloatingCoins] = useState<{ id: string; r: number; c: number; value: number }[]>([]);
+  const [brokenTiles, setBrokenTiles] = useState<{ id: string; r: number; c: number; type: TileType }[]>([]);
 
   // Keep references to prevent closure stale state in async intervals
   const gridRef = useRef<GridState>([]);
@@ -40,6 +41,33 @@ export function useGameState() {
   };
 
   const waterLevelRow = getWaterLevelRow(waterLevel);
+
+  // Set up constant real-time water rise
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const riseInterval = setInterval(() => {
+      setWaterLevel(prevWater => {
+        // Constantly pour water based on levelConfig rise rate
+        const riseAmt = levelConfig.waterRiseRate / 2.5; // percent per second
+        const nextWater = Math.min(100, prevWater + riseAmt);
+
+        if (nextWater >= 80 && nextWater < 100 && prevWater < 80) {
+          gameAudio.playDangerAlarm();
+        }
+
+        if (nextWater >= 100) {
+          setGameState('gameover');
+          gameAudio.playDefeat();
+          clearInterval(riseInterval);
+        }
+
+        return nextWater;
+      });
+    }, 1000);
+
+    return () => clearInterval(riseInterval);
+  }, [gameState, levelConfig]);
 
   // Initialize level selection
   const selectLevel = (levelId: number) => {
@@ -76,11 +104,29 @@ export function useGameState() {
   // Check game over conditions
   const checkWinLoss = (coins: number, water: number, moves: number) => {
     if (coins >= levelConfig.targetCoins) {
-      setGameState('victory');
+      setGameState('escaping'); // Transition to escaping animation first!
       gameAudio.playVictory();
+      
+      // Smoothly drain water down to 0% so it flows out of the escape door!
+      const drainInterval = setInterval(() => {
+        setWaterLevel(prev => {
+          if (prev <= 0) {
+            clearInterval(drainInterval);
+            return 0;
+          }
+          return Math.max(0, prev - 6);
+        });
+      }, 35);
+
       if (currentLevelId === highestLevelUnlocked && currentLevelId < 5) {
         setHighestLevelUnlocked(prev => prev + 1);
       }
+
+      // Wait 2.5 seconds for the escape animation to finish before showing the victory card popup
+      setTimeout(() => {
+        setGameState('victory');
+      }, 2500);
+
       return true;
     }
 
@@ -148,9 +194,34 @@ export function useGameState() {
           gameAudio.playMatch(combo);
         }
 
+        // Apply candy match water drainage: match combo drains water slightly!
+        const matchDrain = 3.0 * combo;
+        setWaterLevel(prev => Math.max(0, prev - matchDrain));
+
         // Apply Valve water drainage
         if (isValveActivated) {
           setWaterLevel(prev => Math.max(0, prev - 15));
+        }
+
+        // Track broken tiles for cascade match shard explosions!
+        const newBroken: { id: string; r: number; c: number; type: TileType }[] = [];
+        matches.forEach(({ r, c }) => {
+          const tile = currentGrid[r][c];
+          if (tile) {
+            newBroken.push({
+              id: `break_${r}_${c}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+              r,
+              c,
+              type: tile.type
+            });
+          }
+        });
+        
+        if (newBroken.length > 0) {
+          setBrokenTiles(prev => [...prev, ...newBroken]);
+          setTimeout(() => {
+            setBrokenTiles(prev => prev.filter(t => !newBroken.includes(t)));
+          }, 1000);
         }
 
         // Clear matched coordinates in grid
@@ -203,23 +274,11 @@ export function useGameState() {
       setMovesRemaining(prev => {
         const nextMoves = prev - 1;
         
-        // Increment water level after turn ends
-        setWaterLevel(prevWater => {
-          const nextWater = Math.min(100, prevWater + levelConfig.waterRiseRate);
-          
-          // Trigger danger sound when water becomes critical (> 80%)
-          if (nextWater >= 80 && nextWater < 100) {
-            gameAudio.playDangerAlarm();
-          }
-
-          // Check win/loss state with final values
-          setCoinsCollected(prevCoins => {
-            const nextCoins = prevCoins + coinsEarnedThisTurn;
-            checkWinLoss(nextCoins, nextWater, nextMoves);
-            return nextCoins;
-          });
-
-          return nextWater;
+        // Check win/loss state with current values
+        setCoinsCollected(prevCoins => {
+          const nextCoins = prevCoins + coinsEarnedThisTurn;
+          checkWinLoss(nextCoins, waterLevel, nextMoves);
+          return nextCoins;
         });
 
         return nextMoves;
@@ -303,7 +362,8 @@ export function useGameState() {
     setActiveTutorialIndex,
     toggleSound,
     setGameState,
-    floatingCoins
+    floatingCoins,
+    brokenTiles
   };
 }
 export type GameStateHook = ReturnType<typeof useGameState>;
