@@ -538,50 +538,82 @@ export function applyBuoyancyAndGravity(grid: GridState, waterLevelRow: number, 
     };
   };
 
-  // Run the physics sliding solver up to 8 iterations
-  for (let step = 0; step < 8; step++) {
-    // 1. Inject new tiles if boundary slots are empty
-    for (let c = 0; c < cols; c++) {
-      // Dry entries at the top
-      if (waterLevelRow > 0 && newGrid[0][c] === null) {
-        newGrid[0][c] = spawnNewTile();
+  // GRAVITY ENGINE: Column-compaction with algae as fixed blockers
+  // Algae cells never move — only free (non-algae) slots compact and refill.
+  // Dry zone free slots: pack tiles towards bottom (water line)
+  // Wet zone free slots: pack tiles towards top (water line), boulders to bottom
+
+  for (let c = 0; c < cols; c++) {
+    // ---- DRY ZONE ----
+    if (waterLevelRow > 0) {
+      // Identify which rows are locked by algae
+      const algaeRows = new Set<number>();
+      const freeTiles: CellState[] = [];
+
+      for (let r = 0; r < waterLevelRow; r++) {
+        const cell = newGrid[r][c];
+        if (cell && cell.algae) {
+          algaeRows.add(r); // fixed — never moved
+        } else if (cell) {
+          freeTiles.push(cell); // moveable tile
+        }
+        // null = empty free slot (no tile to collect)
+      }
+
+      const freeSlotCount = waterLevelRow - algaeRows.size;
+
+      // Spawn new tiles to fill any missing free slots
+      while (freeTiles.length < freeSlotCount) {
+        freeTiles.unshift(spawnNewTile()); // new tiles enter from the top
         spawnedCount++;
       }
-      // Wet entries at the bottom
-      if (waterLevelRow < rows && newGrid[7][c] === null) {
-        newGrid[7][c] = spawnNewTile();
-        spawnedCount++;
+
+      // Write back: algae stays, free slots get compacted tiles (packed to bottom)
+      let tileIdx = 0;
+      for (let r = 0; r < waterLevelRow; r++) {
+        if (!algaeRows.has(r)) {
+          newGrid[r][c] = freeTiles[tileIdx++];
+        }
+        // algae rows: newGrid[r][c] unchanged
       }
     }
 
-    // 2. Perform slide sweeps
-    for (let c = 0; c < cols; c++) {
-      // Scan DOWN (0 to 7) for fall-down tiles
-      for (let r = 0; r < rows - 1; r++) {
-        const tile = newGrid[r][c];
-        if (tile && !tile.algae) {
-          const isWet = r >= waterLevelRow;
-          const wantsGoDown = (tile.type === 'boulder') || !isWet;
+    // ---- WET ZONE ----
+    const wetRows = rows - waterLevelRow;
+    if (wetRows > 0) {
+      const algaeRows = new Set<number>();
+      const wetFloaters: CellState[] = [];
+      const wetBoulders: CellState[] = [];
 
-          if (wantsGoDown && newGrid[r+1][c] === null) {
-            newGrid[r+1][c] = tile;
-            newGrid[r][c] = null;
+      for (let r = waterLevelRow; r < rows; r++) {
+        const cell = newGrid[r][c];
+        if (cell && cell.algae) {
+          algaeRows.add(r); // fixed
+        } else if (cell) {
+          if (cell.type === 'boulder') {
+            wetBoulders.push(cell);
+          } else {
+            wetFloaters.push(cell);
           }
         }
       }
 
-      // Scan UP (7 down to 0) for float-up tiles
-      for (let r = rows - 1; r > 0; r--) {
-        const tile = newGrid[r][c];
-        if (tile && !tile.algae) {
-          const isWet = r >= waterLevelRow;
-          const wantsGoUp = (tile.type !== 'boulder') && isWet;
+      const freeSlotCount = wetRows - algaeRows.size;
 
-          if (wantsGoUp && newGrid[r-1][c] === null) {
-            newGrid[r-1][c] = tile;
-            newGrid[r][c] = null;
-          }
+      // Spawn new floaters to fill missing free slots
+      while (wetFloaters.length + wetBoulders.length < freeSlotCount) {
+        wetFloaters.unshift(spawnNewTile());
+        spawnedCount++;
+      }
+
+      // Layout: floaters packed at top of wet zone, boulders sink to bottom
+      const wetFree = [...wetFloaters, ...wetBoulders];
+      let tileIdx = 0;
+      for (let r = waterLevelRow; r < rows; r++) {
+        if (!algaeRows.has(r)) {
+          newGrid[r][c] = wetFree[tileIdx++];
         }
+        // algae rows: newGrid[r][c] unchanged
       }
     }
   }

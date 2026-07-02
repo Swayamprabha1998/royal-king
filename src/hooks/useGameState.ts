@@ -41,6 +41,8 @@ export function useGameState() {
   gridRef.current = grid;
   const isBoardLockedRef = useRef(isBoardLocked);
   isBoardLockedRef.current = isBoardLocked;
+  const waterLevelRef = useRef(waterLevel);
+  waterLevelRef.current = waterLevel;
 
   // Cache water level index for buoyancy calculations
   const getWaterLevelRow = (pct: number) => {
@@ -162,6 +164,8 @@ export function useGameState() {
     let coinsEarnedThisTurn = 0;
     let anyAlgaeClearedThisTurn = false;
     let hasMatchedAnythingOnFirstPass = false;
+    let totalScoreThisTurn = 0;
+    let totalWaterDrainThisTurn = 0;
 
     while (keepResolving) {
       const { 
@@ -215,13 +219,10 @@ export function useGameState() {
           gameAudio.playMatch(combo);
         }
 
-        // Apply water drainage: match combos drain water level
-        const matchDrain = 3.0 * combo;
-        setWaterLevel(prev => Math.max(0, prev - matchDrain));
-
-        if (isValveActivated) {
-          setWaterLevel(prev => Math.max(0, prev - 15));
-        }
+        // Accumulate water drain and score — applied AFTER full cascade to avoid mid-cascade re-renders
+        totalWaterDrainThisTurn += 3.0 * combo;
+        if (isValveActivated) totalWaterDrainThisTurn += 15;
+        totalScoreThisTurn += matches.length * 15 * combo;
 
         // Push broken tiles coordinates to trigger visual shard explosions
         const newBroken: { id: string; r: number; c: number; type: TileType }[] = [];
@@ -241,17 +242,17 @@ export function useGameState() {
           setBrokenTiles(prev => [...prev, ...newBroken]);
           setTimeout(() => {
             setBrokenTiles(prev => prev.filter(t => !newBroken.includes(t)));
-          }, 1000);
+          }, 800);
         }
 
-        // Resolve matching and ice cracking wrappers
+        // Step 1: Clear matched tiles from the grid
         matches.forEach(({ r, c }) => {
           const cell = currentGrid[r][c];
           if (cell) {
             if (cell.frozen) {
               cell.frozen = false; // cracks ice block but keeps gem
             } else {
-              currentGrid[r][c] = null; // clears tile
+              currentGrid[r][c] = null;
             }
           }
         });
@@ -262,7 +263,7 @@ export function useGameState() {
           }
         });
 
-        // Spawn newly formed blasters and bombs
+        // Spawn newly formed blasters and bombs before gravity
         powerUpsToSpawn.forEach(p => {
           if (currentGrid[p.r][p.c] === null) {
             currentGrid[p.r][p.c] = {
@@ -274,19 +275,17 @@ export function useGameState() {
           }
         });
 
-        setGrid(currentGrid);
-        await new Promise(res => setTimeout(res, 180));
-
-        // 2. Apply Buoyancy & Gravity
-        const currentWaterRow = getWaterLevelRow(waterLevel);
+        // Step 2: Apply gravity IMMEDIATELY (no setGrid with holes — this was the blink!)
+        const currentWaterRow = getWaterLevelRow(waterLevelRef.current);
         const gravityResult = applyBuoyancyAndGravity(currentGrid, currentWaterRow, levelConfig);
         currentGrid = gravityResult.grid;
-        setGrid(currentGrid);
-        
-        await new Promise(res => setTimeout(res, 250));
 
-        // Accumulate scores
-        setScore(prev => prev + (matches.length * 15 * combo));
+        // Step 3: Render the fully-filled grid in ONE shot — no flicker possible
+        setGrid(currentGrid);
+
+        // Wait for the tile slide animation to complete before checking next cascade
+        await new Promise(res => setTimeout(res, 300));
+
       } else {
         keepResolving = false;
       }
@@ -312,19 +311,28 @@ export function useGameState() {
       await new Promise(res => setTimeout(res, 180));
     }
 
+    // Apply all accumulated score and water drain in one batch after cascade
+    if (totalScoreThisTurn > 0) setScore(prev => prev + totalScoreThisTurn);
+    if (totalWaterDrainThisTurn > 0) setWaterLevel(prev => Math.max(0, prev - totalWaterDrainThisTurn));
+
     // Post-turn calculations
     if (hasMatchedAnythingOnFirstPass) {
       setMovesRemaining(prev => {
         const nextMoves = prev - 1;
         setCoinsCollected(prevCoins => {
           const nextCoins = prevCoins + coinsEarnedThisTurn;
-          checkWinLoss(nextCoins, waterLevel, nextMoves);
+          checkWinLoss(nextCoins, waterLevelRef.current, nextMoves);
           return nextCoins;
         });
         return nextMoves;
       });
     }
 
+    // Strip isNew flags (spawn animations done) and unlock board
+    currentGrid = currentGrid.map(row =>
+      row.map(cell => cell && cell.isNew ? { ...cell, isNew: false } : cell)
+    );
+    setGrid(currentGrid);
     setIsBoardLocked(false);
   };
 
@@ -405,22 +413,19 @@ export function useGameState() {
       }, 850);
     }
 
-    setGrid(currentGrid);
-    await new Promise(res => setTimeout(res, 200));
-
-    // Resolve physical sliding updates
-    const currentWaterRow = getWaterLevelRow(waterLevel);
+    // Apply gravity IMMEDIATELY before rendering — no holes ever shown
+    const currentWaterRow = getWaterLevelRow(waterLevelRef.current);
     const gravityResult = applyBuoyancyAndGravity(currentGrid, currentWaterRow, levelConfig);
     currentGrid = gravityResult.grid;
     setGrid(currentGrid);
-    await new Promise(res => setTimeout(res, 250));
+    await new Promise(res => setTimeout(res, 320));
 
     // Deduct turn moves
     setMovesRemaining(prev => {
       const nextMoves = prev - 1;
       setCoinsCollected(prevCoins => {
         const nextCoins = prevCoins + coinsEarnedThisTurn;
-        checkWinLoss(nextCoins, waterLevel, nextMoves);
+        checkWinLoss(nextCoins, waterLevelRef.current, nextMoves);
         return nextCoins;
       });
       return nextMoves;
