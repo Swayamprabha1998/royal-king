@@ -1,0 +1,231 @@
+.board-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-width: 480px;
+  background-color: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 16px;
+  border: 4px solid #c5a059; /* Gold border */
+  box-shadow: 0 16px 48px rgba(139, 105, 20, 0.12), inset 0 0 20px rgba(255,255,255,0.5);
+  overflow: hidden;
+  touch-action: none; /* Crucial to disable mobile zoom/scrolling while dragging tiles */
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.svg-defs-hidden {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+/* Background Cells */
+.grid-cells-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.grid-cell-bg {
+  position: absolute;
+  width: 12.5%;
+  height: 12.5%;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  transition: background-color 0.5s ease;
+}
+
+.dry-cell {
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+.submerged-cell {
+  background-color: rgba(0, 191, 255, 0.08);
+}
+
+/* Wave boundary line */
+.water-level-line {
+  position: absolute;
+  top: -1.5px;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(to right, #00f0ff, #007aff, #00f0ff);
+  box-shadow: 0 0 10px #00d4ff;
+  z-index: 10;
+  animation: ripple-line 1.5s linear infinite;
+}
+
+@keyframes ripple-line {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+/* Algae Blocker styling */
+.algae-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.algae-lock {
+  position: absolute;
+  width: 12.5%;
+  height: 12.5%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.algae-vines {
+  width: 80%;
+  height: 80%;
+  background-color: rgba(46, 204, 113, 0.25);
+  border: 2px dashed #2ecc71;
+  border-radius: 35%;
+  box-shadow: inset 0 0 8px rgba(39, 174, 96, 0.4), 0 0 6px rgba(46, 204, 113, 0.6);
+  animation: algae-pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes algae-pulse {
+  0% { transform: scale(0.9); box-shadow: 0 0 4px rgba(46, 204, 113, 0.4); }
+  100% { transform: scale(1.05); box-shadow: 0 0 10px rgba(46, 204, 113, 0.8); }
+}
+
+/* Tiles layer and styling */
+.tiles-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 8;
+}
+
+.tile-wrapper {
+  position: absolute;
+  width: 12.5%;
+  height: 12.5%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: grab;
+  box-sizing: border-box;
+  padding: 4px;
+  /* Smooth transform transition for matching/sliding */
+  transition: 
+    top 0.24s cubic-bezier(0.25, 1, 0.5, 1), 
+    left 0.22s cubic-bezier(0.25, 1, 0.5, 1), 
+    transform 0.15s ease,
+    opacity 0.2s ease;
+  will-change: top, left, transform;
+}
+
+.tile-wrapper:active {
+  cursor: grabbing;
+}
+
+.tile-icon-container {
+  width: 90%;
+  height: 90%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.15s ease;
+}
+
+.tile-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.2));
+}
+
+/* Tile states animations */
+.tile-wrapper.spawned {
+  animation: spawn-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes spawn-pop {
+  0% { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Selection outline styling */
+.tile-wrapper.selected {
+  transform: scale(1.15);
+  z-index: 20;
+}
+
+.tile-wrapper.selected .tile-icon-container {
+  filter: drop-shadow(0 0 10px var(--selected-glow, #fff));
+  animation: pulse-selection 1.2s infinite ease-in-out;
+}
+
+.tile-wrapper.selected .tile-icon-container.ruby { --selected-glow: #ff2d55; }
+.tile-wrapper.selected .tile-icon-container.sapphire { --selected-glow: #007aff; }
+.tile-wrapper.selected .tile-icon-container.emerald { --selected-glow: #4cd964; }
+.tile-wrapper.selected .tile-icon-container.amethyst { --selected-glow: #5856d6; }
+.tile-wrapper.selected .tile-icon-container.coin { --selected-glow: #ffd200; }
+.tile-wrapper.selected .tile-icon-container.valve { --selected-glow: #888; }
+
+@keyframes pulse-selection {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+/* Dynamic glass buoyancy water shader */
+.grid-water-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 212, 255, 0.15) 0%,
+    rgba(0, 122, 255, 0.3) 100%
+  );
+  backdrop-filter: blur(1.5px) saturate(1.4) hue-rotate(5deg);
+  -webkit-backdrop-filter: blur(1.5px) saturate(1.4) hue-rotate(5deg);
+  border-top: 1.5px solid rgba(0, 212, 255, 0.5);
+  pointer-events: none;
+  z-index: 9; /* Sits right between background cells and tiles */
+  transition: top 0.6s ease-in-out, height 0.6s ease-in-out;
+}
+
+/* Floating effect for submerged tiles */
+.tile-wrapper.wet {
+  animation: tile-float 3s ease-in-out infinite alternate;
+}
+
+@keyframes tile-float {
+  0% { transform: translateY(-1.5px) rotate(-1.2deg); }
+  100% { transform: translateY(1.5px) rotate(1.2deg); }
+}
+
+/* Coin custom floating details */
+.gold-coin-svg {
+  animation: spin-coin 5s linear infinite;
+}
+
+@keyframes spin-coin {
+  0%, 100% { transform: scaleX(1); }
+  50% { transform: scaleX(0.85); }
+}
+
+/* Valve wheel turn animation on matches */
+.valve-svg {
+  transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.tile-wrapper:hover .valve-svg {
+  transform: rotate(90deg);
+}
