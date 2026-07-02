@@ -103,7 +103,8 @@ const App: React.FC = () => {
     setGameState,
     floatingCoins,
     brokenTiles,
-    handleTileSwap
+    handleTileSwap,
+    resetProgress
   } = useGameState() as any; // Cast for simpler swap access
 
   // Manual wrapper for swaps from GameBoard
@@ -113,6 +114,7 @@ const App: React.FC = () => {
 
   return (
     <div className="app-viewport">
+      {waterLevel >= 80 && gameState === 'playing' && <div className="danger-vignette-glow" />}
       {/* Top Universal Header */}
       <header className="app-header">
         <div className="header-brand">
@@ -139,6 +141,7 @@ const App: React.FC = () => {
           <LevelSelector
             highestLevelUnlocked={highestLevelUnlocked}
             onSelectLevel={selectLevel}
+            onResetProgress={resetProgress}
           />
         ) : (
           <div className="gameplay-screen">

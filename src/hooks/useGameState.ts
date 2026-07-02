@@ -7,11 +7,19 @@ import {
   scanMatches, 
   swapTiles, 
   applyBuoyancyAndGravity, 
-  isAdjacent
+  isAdjacent,
+  spreadAlgae,
+  generateUniqueId
 } from '../services/boardLogic';
 import { gameAudio } from '../services/audio';
 
 export function useGameState() {
+  // Load persistent progression from localStorage
+  const getSavedUnlockedLevel = (): number => {
+    const saved = localStorage.getItem('royal_rescue_unlocked_level');
+    return saved ? Math.min(8, Math.max(1, parseInt(saved))) : 1;
+  };
+
   const [currentLevelId, setCurrentLevelId] = useState<number>(1);
   const [levelConfig, setLevelConfig] = useState<LevelConfig>(LEVELS[1]);
   const [grid, setGrid] = useState<GridState>([]);
@@ -23,7 +31,7 @@ export function useGameState() {
   const [activeTutorialIndex, setActiveTutorialIndex] = useState(0);
   const [selectedTile, setSelectedTile] = useState<{ r: number; c: number } | null>(null);
   const [isBoardLocked, setIsBoardLocked] = useState(false);
-  const [highestLevelUnlocked, setHighestLevelUnlocked] = useState(1);
+  const [highestLevelUnlocked, setHighestLevelUnlocked] = useState<number>(getSavedUnlockedLevel());
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [floatingCoins, setFloatingCoins] = useState<{ id: string; r: number; c: number; value: number }[]>([]);
   const [brokenTiles, setBrokenTiles] = useState<{ id: string; r: number; c: number; type: TileType }[]>([]);
@@ -35,7 +43,6 @@ export function useGameState() {
   isBoardLockedRef.current = isBoardLocked;
 
   // Cache water level index for buoyancy calculations
-  // 0% water = row 8 (none), 100% water = row 0 (all)
   const getWaterLevelRow = (pct: number) => {
     return Math.max(0, 8 - Math.floor(pct / 12.5));
   };
@@ -46,83 +53,90 @@ export function useGameState() {
   useEffect(() => {
     if (gameState !== 'playing') return;
 
-    const riseInterval = setInterval(() => {
-      setWaterLevel(prevWater => {
-        // Constantly pour water based on levelConfig rise rate
-        const riseAmt = levelConfig.waterRiseRate / 2.5; // percent per second
-        const nextWater = Math.min(100, prevWater + riseAmt);
-
-        if (nextWater >= 80 && nextWater < 100 && prevWater < 80) {
-          gameAudio.playDangerAlarm();
+    // Water rises by (riseRate / 10) percent every 100ms
+    const interval = setInterval(() => {
+      setWaterLevel(prev => {
+        const nextWater = Math.min(100, prev + (levelConfig.waterRiseRate / 10));
+        
+        // Critical audio warning triggers
+        if (nextWater >= 80 && Math.floor(nextWater * 10) % 20 === 0) {
+          gameAudio.playDangerAlarm?.();
         }
 
         if (nextWater >= 100) {
           setGameState('gameover');
           gameAudio.playDefeat();
-          clearInterval(riseInterval);
+          clearInterval(interval);
         }
-
         return nextWater;
       });
-    }, 1000);
+    }, 100);
 
-    return () => clearInterval(riseInterval);
+    return () => clearInterval(interval);
   }, [gameState, levelConfig]);
 
-  // Initialize level selection
+  // Navigate to Level and Start It!
   const selectLevel = (levelId: number) => {
-    if (levelId > highestLevelUnlocked) return;
-    const config = LEVELS[levelId];
+    const config = LEVELS[levelId] || LEVELS[1];
     setCurrentLevelId(levelId);
     setLevelConfig(config);
     setCoinsCollected(0);
-    setWaterLevel(config.initialWaterLevel * 12.5); // Convert rows to percentage
+    setWaterLevel(config.initialWaterLevel * 12.5); // Initialize water heights
     setMovesRemaining(config.movesLimit);
     setScore(0);
     setSelectedTile(null);
     setIsBoardLocked(false);
-    
+
     const initialGrid = createInitialBoard(config);
     setGrid(initialGrid);
 
-    // Enter tutorial mode
-    setGameState('tutorial');
-    setActiveTutorialIndex(0);
+    if (config.tutorialText.length > 0) {
+      setGameState('tutorial');
+      setActiveTutorialIndex(0);
+    } else {
+      setGameState('playing');
+    }
   };
 
-  // Toggle sound
-  const toggleSound = () => {
-    const nextState = gameAudio.toggle();
-    setIsSoundEnabled(nextState);
-  };
-
-  // Start the level after tutorial
+  // Launch Active Level
   const startLevel = () => {
     setGameState('playing');
   };
 
-  // Check game over conditions
-  const checkWinLoss = (coins: number, water: number, moves: number) => {
+  // Check Win/Loss states
+  const checkWinLoss = (coins: number, water: number, moves: number): boolean => {
     if (coins >= levelConfig.targetCoins) {
-      setGameState('escaping'); // Transition to escaping animation first!
+      setGameState('escaping');
       gameAudio.playVictory();
-      
-      // Smoothly drain water down to 0% so it flows out of the escape door!
+
+      // Drain all remaining water visually
       const drainInterval = setInterval(() => {
         setWaterLevel(prev => {
           if (prev <= 0) {
             clearInterval(drainInterval);
             return 0;
           }
-          return Math.max(0, prev - 6);
+          return Math.max(0, prev - 15);
         });
-      }, 35);
+      }, 80);
 
-      if (currentLevelId === highestLevelUnlocked && currentLevelId < 5) {
-        setHighestLevelUnlocked(prev => prev + 1);
+      // Star rating calculation based on moves remaining
+      const starsEarned = moves >= Math.ceil(levelConfig.movesLimit * 0.35) 
+        ? 3 
+        : moves >= Math.ceil(levelConfig.movesLimit * 0.12) 
+          ? 2 
+          : 1;
+
+      localStorage.setItem(`royal_rescue_stars_level_${currentLevelId}`, starsEarned.toString());
+
+      // Unlock next level
+      const nextLevel = Math.min(8, currentLevelId + 1);
+      if (nextLevel > highestLevelUnlocked) {
+        setHighestLevelUnlocked(nextLevel);
+        localStorage.setItem('royal_rescue_unlocked_level', nextLevel.toString());
       }
 
-      // Wait 2.5 seconds for the escape animation to finish before showing the victory card popup
+      // Wait 2.5 seconds for walking escape animation to complete before showing victory modal
       setTimeout(() => {
         setGameState('victory');
       }, 2500);
@@ -146,34 +160,42 @@ export function useGameState() {
     let combo = 0;
     let keepResolving = true;
     let coinsEarnedThisTurn = 0;
-
-    // We store whether we should swap back if no matches occur on the initial manual swap
+    let anyAlgaeClearedThisTurn = false;
     let hasMatchedAnythingOnFirstPass = false;
 
     while (keepResolving) {
-      // 1. Scan for matches
-      const { matches, isValveActivated, coinCountCollected } = scanMatches(currentGrid);
+      const { 
+        matches, 
+        isValveActivated, 
+        coinCountCollected,
+        powerUpsToSpawn,
+        crackedIceCoords 
+      } = scanMatches(currentGrid);
 
       if (matches.length > 0) {
         hasMatchedAnythingOnFirstPass = true;
         combo++;
         
-        // Accumulate coins: only Gold Coin tiles award coins!
         let coinsThisMatch = 0;
         const coinsToAnimate: { id: string; r: number; c: number; value: number }[] = [];
+
         matches.forEach(({ r, c }) => {
           const tile = currentGrid[r][c];
-          if (tile && tile.type === 'coin') {
-            const val = 1; // 1 coin per matched gold coin tile
-            coinsThisMatch += val;
-            coinsToAnimate.push({
-              id: `coin_${r}_${c}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-              r,
-              c,
-              value: val
-            });
+          if (tile) {
+            if (tile.algae) anyAlgaeClearedThisTurn = true;
+            if (tile.type === 'coin') {
+              const val = 1;
+              coinsThisMatch += val;
+              coinsToAnimate.push({
+                id: `coin_${r}_${c}_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+                r,
+                c,
+                value: val
+              });
+            }
           }
         });
+
         coinsEarnedThisTurn += coinsThisMatch;
 
         if (coinsToAnimate.length > 0) {
@@ -185,7 +207,6 @@ export function useGameState() {
           });
         }
 
-        // Play matching sound
         if (coinCountCollected > 0) {
           gameAudio.playCoin();
         } else if (isValveActivated) {
@@ -194,16 +215,15 @@ export function useGameState() {
           gameAudio.playMatch(combo);
         }
 
-        // Apply candy match water drainage: match combo drains water slightly!
+        // Apply water drainage: match combos drain water level
         const matchDrain = 3.0 * combo;
         setWaterLevel(prev => Math.max(0, prev - matchDrain));
 
-        // Apply Valve water drainage
         if (isValveActivated) {
           setWaterLevel(prev => Math.max(0, prev - 15));
         }
 
-        // Track broken tiles for cascade match shard explosions!
+        // Push broken tiles coordinates to trigger visual shard explosions
         const newBroken: { id: string; r: number; c: number; type: TileType }[] = [];
         matches.forEach(({ r, c }) => {
           const tile = currentGrid[r][c];
@@ -216,7 +236,7 @@ export function useGameState() {
             });
           }
         });
-        
+
         if (newBroken.length > 0) {
           setBrokenTiles(prev => [...prev, ...newBroken]);
           setTimeout(() => {
@@ -224,63 +244,83 @@ export function useGameState() {
           }, 1000);
         }
 
-        // Clear matched coordinates in grid
+        // Resolve matching and ice cracking wrappers
         matches.forEach(({ r, c }) => {
-          // Clear algae if it's there
-          if (currentGrid[r][c]) {
-            currentGrid[r][c] = null;
+          const cell = currentGrid[r][c];
+          if (cell) {
+            if (cell.frozen) {
+              cell.frozen = false; // cracks ice block but keeps gem
+            } else {
+              currentGrid[r][c] = null; // clears tile
+            }
           }
         });
 
-        // Set state to trigger visual clear
+        crackedIceCoords.forEach(({ r, c }) => {
+          if (currentGrid[r][c] && currentGrid[r][c]!.frozen) {
+            currentGrid[r][c]!.frozen = false;
+          }
+        });
+
+        // Spawn newly formed blasters and bombs
+        powerUpsToSpawn.forEach(p => {
+          if (currentGrid[p.r][p.c] === null) {
+            currentGrid[p.r][p.c] = {
+              id: generateUniqueId(),
+              type: p.type,
+              algae: false,
+              powerUp: p.powerUp
+            };
+          }
+        });
+
         setGrid(currentGrid);
-        // Wait for visual pop effect (150ms)
-        await new Promise(res => setTimeout(res, 150));
+        await new Promise(res => setTimeout(res, 180));
 
         // 2. Apply Buoyancy & Gravity
         const currentWaterRow = getWaterLevelRow(waterLevel);
-        const gravityResult = applyBuoyancyAndGravity(currentGrid, currentWaterRow, levelConfig.hasValves);
+        const gravityResult = applyBuoyancyAndGravity(currentGrid, currentWaterRow, levelConfig);
         currentGrid = gravityResult.grid;
         setGrid(currentGrid);
         
-        // Wait for sliding tiles (250ms)
         await new Promise(res => setTimeout(res, 250));
 
-        // Add score
-        setScore(prev => prev + (matches.length * 10 * combo));
+        // Accumulate scores
+        setScore(prev => prev + (matches.length * 15 * combo));
       } else {
-        // No matches found in this scan iteration
         keepResolving = false;
       }
     }
 
-    // Handle swap back if manual swap failed to match anything
+    // Revert manual swap if no match was created
     if (wasManualSwap && !hasMatchedAnythingOnFirstPass && prevSwapCoords) {
-      // Revert the swap visually
       const { r1, c1, r2, c2 } = prevSwapCoords;
       const revertedGrid = swapTiles(currentGrid, r1, c1, r2, c2);
       if (revertedGrid) {
         setGrid(revertedGrid);
-        gameAudio.playClick(); // generic sound
-        await new Promise(res => setTimeout(res, 250));
+        gameAudio.playClick();
+        await new Promise(res => setTimeout(res, 220));
       }
       setIsBoardLocked(false);
       return;
     }
 
-    // Apply outcomes after turn finishes
+    // Algae spreading check: spreads algae if none was cleared this turn
+    if (hasMatchedAnythingOnFirstPass && levelConfig.hasAlgae && !anyAlgaeClearedThisTurn) {
+      currentGrid = spreadAlgae(currentGrid);
+      setGrid(currentGrid);
+      await new Promise(res => setTimeout(res, 180));
+    }
+
+    // Post-turn calculations
     if (hasMatchedAnythingOnFirstPass) {
-      // Deduct move
       setMovesRemaining(prev => {
         const nextMoves = prev - 1;
-        
-        // Check win/loss state with current values
         setCoinsCollected(prevCoins => {
           const nextCoins = prevCoins + coinsEarnedThisTurn;
           checkWinLoss(nextCoins, waterLevel, nextMoves);
           return nextCoins;
         });
-
         return nextMoves;
       });
     }
@@ -288,44 +328,153 @@ export function useGameState() {
     setIsBoardLocked(false);
   };
 
-  // Perform tile swap
+  // Detonate lightning zaps (clear all matching color tiles)
+  const runLightningCascade = async (r1: number, c1: number, r2: number, c2: number, targetType: TileType) => {
+    setIsBoardLocked(true);
+    let currentGrid = gridRef.current.map(row => [...row]);
+    let coinsEarnedThisTurn = 0;
+
+    const l1 = currentGrid[r1][c1];
+    const l2 = currentGrid[r2][c2];
+
+    const matchCoords: { r: number; c: number }[] = [];
+
+    // Log the lightning coordinates
+    if (l1?.powerUp === 'lightning') matchCoords.push({ r: r1, c: c1 });
+    if (l2?.powerUp === 'lightning') matchCoords.push({ r: r2, c: c2 });
+
+    // Grab all cells matching the target color (excluding valves/boulders)
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const cell = currentGrid[r][c];
+        if (cell && cell.type === targetType && cell.type !== 'valve' && cell.type !== 'boulder') {
+          matchCoords.push({ r, c });
+        }
+      }
+    }
+
+    // Play electric/valve sounds
+    gameAudio.playValve();
+
+    // Trigger visual shard explosions
+    const newBroken: { id: string; r: number; c: number; type: TileType }[] = [];
+    matchCoords.forEach(({ r, c }) => {
+      const tile = currentGrid[r][c];
+      if (tile) {
+        newBroken.push({
+          id: `lightning_break_${r}_${c}_${Date.now()}`,
+          r,
+          c,
+          type: tile.type
+        });
+      }
+    });
+
+    if (newBroken.length > 0) {
+      setBrokenTiles(prev => [...prev, ...newBroken]);
+      setTimeout(() => {
+        setBrokenTiles(prev => prev.filter(t => !newBroken.includes(t)));
+      }, 1000);
+    }
+
+    // Resolve clears and coin collections
+    let coinsThisMatch = 0;
+    const coinsToAnimate: { id: string; r: number; c: number; value: number }[] = [];
+
+    matchCoords.forEach(({ r, c }) => {
+      const tile = currentGrid[r][c];
+      if (tile) {
+        if (tile.type === 'coin') {
+          coinsThisMatch += 1;
+          coinsToAnimate.push({
+            id: `coin_${r}_${c}_${Date.now()}`,
+            r,
+            c,
+            value: 1
+          });
+        }
+        currentGrid[r][c] = null;
+      }
+    });
+
+    coinsEarnedThisTurn += coinsThisMatch;
+    if (coinsToAnimate.length > 0) {
+      setFloatingCoins(prev => [...prev, ...coinsToAnimate]);
+      setTimeout(() => {
+        setFloatingCoins(prev => prev.filter(fc => !coinsToAnimate.includes(fc)));
+      }, 850);
+    }
+
+    setGrid(currentGrid);
+    await new Promise(res => setTimeout(res, 200));
+
+    // Resolve physical sliding updates
+    const currentWaterRow = getWaterLevelRow(waterLevel);
+    const gravityResult = applyBuoyancyAndGravity(currentGrid, currentWaterRow, levelConfig);
+    currentGrid = gravityResult.grid;
+    setGrid(currentGrid);
+    await new Promise(res => setTimeout(res, 250));
+
+    // Deduct turn moves
+    setMovesRemaining(prev => {
+      const nextMoves = prev - 1;
+      setCoinsCollected(prevCoins => {
+        const nextCoins = prevCoins + coinsEarnedThisTurn;
+        checkWinLoss(nextCoins, waterLevel, nextMoves);
+        return nextCoins;
+      });
+      return nextMoves;
+    });
+
+    // Solve any subsequent cascade matches formed
+    await runMatchCascade(false);
+  };
+
+  // Perform tile swap (bypasses to lightning resolver if zappers are matched)
   const handleTileSwap = async (r1: number, c1: number, r2: number, c2: number) => {
     if (isBoardLocked || gameState !== 'playing') return;
+
+    const tile1 = grid[r1][c1];
+    const tile2 = grid[r2][c2];
+
+    const isL1 = tile1?.powerUp === 'lightning';
+    const isL2 = tile2?.powerUp === 'lightning';
+
+    if (isL1 || isL2) {
+      const swappedGrid = swapTiles(grid, r1, c1, r2, c2);
+      if (!swappedGrid) return;
+      setGrid(swappedGrid);
+      gameAudio.playClick();
+      await new Promise(res => setTimeout(res, 200));
+
+      const targetType = isL1 ? tile2?.type : tile1?.type;
+      await runLightningCascade(r1, c1, r2, c2, targetType || 'ruby');
+      return;
+    }
 
     const swappedGrid = swapTiles(grid, r1, c1, r2, c2);
     if (!swappedGrid) return;
 
-    // Set swapped state immediately for smooth animation trigger
     setGrid(swappedGrid);
     gameAudio.playClick();
     
-    // Wait for swap animation (200ms)
     await new Promise(res => setTimeout(res, 200));
-
-    // Resolve cascades, checking if we need to swap back on zero matches
     await runMatchCascade(true, { r1, c1, r2, c2 });
   };
 
-  // Handle player tile selection
   const handleSelectTile = (r: number, c: number) => {
     if (isBoardLocked || gameState !== 'playing') return;
 
-    const tile = grid[r][c];
-    if (!tile || tile.algae) {
-      // Cannot select empty tiles or locked algae tiles
-      return;
-    }
+    const cell = grid[r][c];
+    if (!cell || cell.algae || cell.frozen) return; // cannot select locked/ice tiles
 
     if (selectedTile) {
       if (selectedTile.r === r && selectedTile.c === c) {
-        // Deselect
         setSelectedTile(null);
       } else if (isAdjacent(selectedTile.r, selectedTile.c, r, c)) {
-        // Swap adjacent tiles
         handleTileSwap(selectedTile.r, selectedTile.c, r, c);
         setSelectedTile(null);
       } else {
-        // Switch selection to new tile if not adjacent
         setSelectedTile({ r, c });
         gameAudio.playClick();
       }
@@ -335,9 +484,28 @@ export function useGameState() {
     }
   };
 
-  // Quick reset for current level
   const resetLevel = () => {
     selectLevel(currentLevelId);
+  };
+
+  const toggleSound = () => {
+    setIsSoundEnabled(prev => {
+      const nextVal = !prev;
+      gameAudio.toggle(nextVal);
+      return nextVal;
+    });
+  };
+
+  const resetProgress = () => {
+    if (window.confirm("Are you sure you want to reset all unlocked levels and stars progress?")) {
+      localStorage.removeItem('royal_rescue_unlocked_level');
+      for (let i = 1; i <= 8; i++) {
+        localStorage.removeItem(`royal_rescue_stars_level_${i}`);
+      }
+      setHighestLevelUnlocked(1);
+      setCurrentLevelId(1);
+      setLevelConfig(LEVELS[1]);
+    }
   };
 
   return {
@@ -363,7 +531,8 @@ export function useGameState() {
     toggleSound,
     setGameState,
     floatingCoins,
-    brokenTiles
+    brokenTiles,
+    resetProgress
   };
 }
 export type GameStateHook = ReturnType<typeof useGameState>;

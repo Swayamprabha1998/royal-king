@@ -1,110 +1,228 @@
+/* Premium Saga Map Level Selector Styles */
+
 .level-selector-screen {
   width: 100%;
   height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 16px;
-  box-sizing: border-box;
-  background-color: transparent; /* Allow castle_bg to show behind scroll! */
-}
-
-.scroll-container {
-  width: 100%;
-  max-width: 480px;
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 3.5px solid #c5a059; /* Gold border */
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(139, 105, 20, 0.15);
-  padding: 24px;
-  box-sizing: border-box;
-  text-align: center;
   position: relative;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
-/* Blueprint grids */
-.scroll-container::before {
-  content: "";
+/* Floating Top Title Bar */
+.map-floating-header {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: 
-    linear-gradient(rgba(197, 160, 89, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(197, 160, 89, 0.05) 1px, transparent 1px);
-  background-size: 20px 20px;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  text-align: center;
   pointer-events: none;
-  z-index: 1;
+  width: 90%;
+  max-width: 600px;
 }
 
-.map-title {
+.map-title-large {
   font-family: 'Georgia', serif;
   font-size: 26px;
   font-weight: 900;
   letter-spacing: 4px;
   color: #8b6914; /* Dark gold text */
-  text-shadow: 0 1px 2px rgba(255,255,255,0.8);
-  margin-top: 0;
-  margin-bottom: 8px;
-  position: relative;
-  z-index: 2;
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.95), 0 0 10px rgba(197, 160, 89, 0.2);
 }
 
-.map-subtitle {
-  font-size: 13px;
-  font-weight: 600;
+.map-subtitle-large {
+  font-size: 11px;
+  font-weight: 700;
   color: #475569;
-  margin-bottom: 36px;
-  position: relative;
-  z-index: 2;
+  margin: 4px 0 0 0;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.9);
 }
 
-/* Pathway nodes map */
-.map-pathway {
-  position: relative;
-  height: 280px;
-  margin: 0 auto;
-  margin-bottom: 30px;
+/* Horizontally scrolling map container viewport */
+.map-scroll-container {
   width: 100%;
-  z-index: 2;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  display: flex;
+  align-items: center;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Connector line */
-.connector-line {
+/* Custom scrollbar for premium touch */
+.map-scroll-container::-webkit-scrollbar {
+  height: 8px;
+}
+.map-scroll-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 4px;
+}
+.map-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(197, 160, 89, 0.4);
+  border-radius: 4px;
+}
+.map-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(197, 160, 89, 0.7);
+}
+
+/* Scroll Track width stretching horizontally */
+.map-scroll-track {
+  width: 1720px; /* Exact width covering 8 levels map road */
+  height: 480px;
+  position: relative;
+  display: flex;
+  margin-top: 40px; /* Offset for header */
+}
+
+/* Chapter theme background regions */
+.map-region {
   position: absolute;
-  top: 15%;
-  bottom: 15%;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 6px;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(197, 160, 89, 0.4),
-    rgba(197, 160, 89, 0.4) 10px,
-    transparent 10px,
-    transparent 20px
-  );
-  z-index: 1;
+  top: 0;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  pointer-events: none;
 }
 
-/* Level nodes buttons (Vibrant Candy Styles!) */
+.map-region.region-guardhouse {
+  left: 0;
+  width: 450px;
+  background: linear-gradient(135deg, rgba(239, 108, 0, 0.07) 0%, rgba(216, 67, 21, 0.03) 100%);
+}
+
+.map-region.region-vaults {
+  left: 450px;
+  width: 600px;
+  background: linear-gradient(135deg, rgba(0, 150, 136, 0.07) 0%, rgba(0, 121, 107, 0.03) 100%);
+}
+
+.map-region.region-crypts {
+  left: 1050px;
+  width: 670px;
+  background: linear-gradient(135deg, rgba(0, 188, 212, 0.07) 0%, rgba(2, 136, 209, 0.03) 100%);
+}
+
+/* 1. PARALLAX LAYER: BACKGROUND (Slowest scroll speed) */
+.map-parallax-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform;
+}
+
+.bg-decor {
+  position: absolute;
+  opacity: 0.15;
+  filter: grayscale(40%) blur(0.5px);
+  user-select: none;
+  pointer-events: none;
+}
+
+.bg-torch-post-1 { left: 120px; top: 80px; font-size: 54px; }
+.bg-shield { left: 340px; top: 310px; font-size: 48px; }
+.bg-key { left: 620px; top: 70px; font-size: 50px; }
+.bg-torch-post-2 { left: 880px; top: 320px; font-size: 46px; }
+.bg-gem { left: 1160px; top: 80px; font-size: 52px; }
+.bg-crown-decor { left: 1420px; top: 290px; font-size: 58px; }
+
+/* 2. PARALLAX LAYER: FOREGROUND (Fastest scroll speed in opposite direction) */
+.map-parallax-fg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 15; /* Sits in front of nodes layer */
+  will-change: transform;
+}
+
+.fg-bubble {
+  position: absolute;
+  font-size: 32px;
+  opacity: 0.22;
+  filter: blur(0.5px);
+  user-select: none;
+  pointer-events: none;
+}
+
+.fb1 { left: 180px; top: 120px; }
+.fb2 { left: 550px; top: 330px; }
+.fb3 { left: 950px; top: 90px; }
+.fb4 { left: 1350px; top: 340px; }
+
+/* 3. FROSTED GLASS DIVIDER PANELS (Chapter Boundaries) */
+.glass-divider-panel {
+  position: absolute;
+  top: 0;
+  width: 14px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.16);
+  border-left: 2px solid rgba(255, 255, 255, 0.4);
+  border-right: 2px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 5;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+  pointer-events: none;
+}
+
+.divider-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-90deg);
+  font-size: 8px;
+  font-weight: 900;
+  color: rgba(139, 105, 20, 0.6);
+  white-space: nowrap;
+  letter-spacing: 2px;
+  text-shadow: 0 1px 1px rgba(255,255,255,0.8);
+}
+
+/* Spline road SVG overlay */
+.saga-map-road-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1700px;
+  height: 460px;
+  z-index: 1;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* Winding SVG map road line crawling */
+.crawling-road-line {
+  animation: road-dash-crawl-key 1s linear infinite;
+}
+
+@keyframes road-dash-crawl-key {
+  to { stroke-dashoffset: -18; }
+}
+
+/* Node layouts */
 .level-node {
   position: absolute;
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  border: 3px solid rgba(255, 255, 255, 0.5);
-  left: 50%;
-  transform: translateX(-50%);
+  border: 3.5px solid rgba(255, 255, 255, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  z-index: 2;
+  z-index: 10;
+  transform: scale(1);
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
 }
@@ -116,8 +234,19 @@
 }
 
 .level-node.unlocked:hover {
-  transform: translateX(-50%) scale(1.18);
-  box-shadow: 0 0 20px rgba(255, 107, 107, 0.6);
+  transform: scale(1.22);
+  box-shadow: 0 0 20px rgba(255, 107, 107, 0.65);
+  z-index: 15;
+}
+
+/* Current unlocked pulse */
+.level-node.active-pulse {
+  animation: active-node-pulse-key 1.5s infinite alternate;
+}
+
+@keyframes active-node-pulse-key {
+  0% { box-shadow: 0 0 10px #ff6b6b, 0 6px 15px rgba(0, 0, 0, 0.15); }
+  100% { box-shadow: 0 0 24px #ff6b6b, 0 0 0 6px rgba(255, 107, 107, 0.3); }
 }
 
 .level-node.completed {
@@ -127,60 +256,155 @@
 }
 
 .level-node.locked {
-  background-color: rgba(0, 0, 0, 0.08);
-  border-color: rgba(0, 0, 0, 0.15);
-  color: #9ca3af;
+  background-color: rgba(226, 232, 240, 0.85);
+  border-color: rgba(148, 163, 184, 0.4);
+  color: #94a3b8;
   cursor: not-allowed;
   box-shadow: none;
 }
 
-/* Distribute nodes along sinusoidal pathway */
-.node-1 { top: 0px; margin-left: -50px; }
-.node-2 { top: 60px; margin-left: 50px; }
-.node-3 { top: 120px; margin-left: -50px; }
-.node-4 { top: 180px; margin-left: 50px; }
-.node-5 { top: 240px; margin-left: 0px; }
-
 .node-number {
-  font-weight: 800;
+  font-weight: 900;
   font-size: 18px;
   display: flex;
   justify-content: center;
   align-items: center;
-  text-shadow: 0 1.5px 3px rgba(0,0,0,0.25);
+  text-shadow: 0 1.5px 3px rgba(0,0,0,0.2);
 }
 
-.lock-icon {
+/* 4. ACTIVE NODE: 3D FLOATING GOLD CROWN MARKER */
+.active-crown-marker {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 24px;
+  z-index: 15;
+  filter: drop-shadow(0 3px 5px rgba(156, 109, 0, 0.5));
+  animation: crown-float-key 1.1s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+.crown-svg {
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes crown-float-key {
+  0% { transform: translateX(-50%) translateY(0); }
+  100% { transform: translateX(-50%) translateY(-6px) rotate(1.5deg); }
+}
+
+/* 5. LOCKED NODES: INTERSECTING METALLIC CHAINS & PADLOCKS */
+.node-chains-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  z-index: 8;
+  overflow: visible;
   display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
 }
 
-.lock-icon path {
-  fill: #9ca3af;
+.padlock-badge {
+  font-size: 17px;
+  z-index: 10;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
 }
 
-/* Node Hover Tooltips */
+.chain-arc {
+  position: absolute;
+  border: 3.5px solid #64748b;
+  border-radius: 50%;
+  opacity: 0.82;
+  filter: drop-shadow(0 1.5px 3px rgba(0, 0, 0, 0.45));
+}
+
+.h-chain {
+  width: 100%;
+  height: 16px;
+  border-left: none;
+  border-right: none;
+  transform: rotate(-15deg);
+}
+
+.v-chain {
+  width: 16px;
+  height: 100%;
+  border-top: none;
+  border-bottom: none;
+  transform: rotate(-15deg);
+}
+
+/* Floating Gold stars above nodes */
+.node-stars {
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1.5px;
+  z-index: 12;
+  background: rgba(15, 23, 42, 0.8);
+  padding: 1.5px 4.5px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.star-gold {
+  color: #ffd700;
+  font-size: 10px;
+  text-shadow: 0 0 3px #ffb300;
+  animation: star-glow-key 1.2s infinite alternate;
+}
+
+@keyframes star-glow-key {
+  0% { transform: scale(0.9); }
+  100% { transform: scale(1.15); }
+}
+
+/* Hover tooltips */
 .node-tooltip {
   position: absolute;
-  left: 65px;
-  width: 130px;
-  background-color: rgba(255, 255, 255, 0.95);
+  width: 125px;
+  background-color: rgba(255, 255, 255, 0.96);
   border: 1.5px solid #c5a059;
   border-radius: 8px;
-  padding: 8px;
+  padding: 6px 8px;
   box-shadow: 0 6px 18px rgba(139, 105, 20, 0.15);
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.2s ease, transform 0.2s ease;
-  transform: translateY(-50%) scale(0.9);
+  transform: translateY(-50%) scale(0.85);
   top: 50%;
-  z-index: 10;
+  z-index: 20;
   text-align: left;
 }
 
-/* Tooltip placements: left nodes extend tooltips to the right, right nodes extend tooltips to the left */
-.node-2 .node-tooltip, .node-4 .node-tooltip {
-  left: auto;
+/* Tooltip dynamic alignment depending on node coordinates */
+.node-1 .node-tooltip, 
+.node-3 .node-tooltip, 
+.node-5 .node-tooltip, 
+.node-7 .node-tooltip {
+  left: 65px;
+}
+
+.node-2 .node-tooltip, 
+.node-4 .node-tooltip, 
+.node-6 .node-tooltip {
   right: 65px;
+  left: auto;
+}
+
+.node-8 .node-tooltip {
+  left: 65px;
 }
 
 .level-node.unlocked:hover .node-tooltip {
@@ -190,15 +414,16 @@
 
 .tooltip-name {
   font-size: 11px;
-  font-weight: 800;
-  color: #1e293b;
-  margin-bottom: 2px;
+  font-weight: 900;
+  color: #0f172a;
+  line-height: 1.2;
 }
 
 .tooltip-details {
   font-size: 9px;
   font-weight: 700;
   color: #8b6914;
+  margin-top: 1px;
 }
 
 .badge {
@@ -206,46 +431,139 @@
   font-size: 7px;
   font-weight: 800;
   text-transform: uppercase;
-  padding: 1px 3px;
+  padding: 1px 3.5px;
   border-radius: 3px;
   margin-top: 4px;
-  margin-right: 3px;
+  margin-right: 3.5px;
   color: white;
 }
 
 .algae-badge { background-color: #2ecc71; }
 .valve-badge { background-color: #3498db; }
-
-/* Help Panel styling */
-.quick-help-panel {
-  background-color: rgba(255, 255, 255, 0.45);
-  border: 1.5px solid rgba(197, 160, 89, 0.35);
-  border-radius: 12px;
-  padding: 14px;
-  text-align: left;
-  position: relative;
-  z-index: 2;
-  box-shadow: inset 0 0 10px rgba(255,255,255,0.5);
+.ice-badge { background-color: #00b4d8; }
+.boulder-badge { background-color: #64748b; }
+.boss-badge { 
+  background-color: #e11d48;
+  animation: boss-pulse-badge 1s infinite alternate;
 }
 
-.quick-help-panel h3 {
+/* Bottom Controls */
+.map-bottom-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+}
+
+.map-control-btn {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 2px solid #c5a059;
+  border-radius: 30px;
+  padding: 10px 20px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  color: #8b6914;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(139, 105, 20, 0.15);
+  transition: all 0.2s ease;
+}
+
+.map-control-btn:hover {
+  transform: scale(1.05);
+  background: #ffffff;
+  box-shadow: 0 6px 20px rgba(139, 105, 20, 0.25);
+}
+
+/* Survival Guide Modal overlay */
+.guide-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.guide-modal-card {
+  width: 100%;
+  max-width: 420px;
+  background: linear-gradient(135deg, #fffcf5 0%, #fff7e6 100%);
+  border: 3.5px solid #d4af37;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(184, 134, 11, 0.28);
+  padding: 22px;
+  box-sizing: border-box;
+  text-align: left;
+}
+
+.guide-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid rgba(197, 160, 89, 0.25);
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.guide-modal-header h2 {
   font-family: 'Georgia', serif;
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 900;
   color: #8b6914;
-  margin-top: 0;
-  margin-bottom: 8px;
-  letter-spacing: 1px;
-}
-
-.quick-help-panel ul {
   margin: 0;
-  padding-left: 14px;
-  font-size: 11px;
-  color: #475569;
-  line-height: 1.5;
 }
 
-.quick-help-panel li {
-  margin-bottom: 6px;
+.close-guide-btn {
+  background: none;
+  border: none;
+  font-size: 26px;
+  font-weight: 300;
+  color: #94a3b8;
+  cursor: pointer;
+  line-height: 1;
+}
+.close-guide-btn:hover {
+  color: #475569;
+}
+
+.guide-modal-body ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.guide-modal-body li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+  font-size: 11.5px;
+  color: #475569;
+  line-height: 1.45;
+}
+
+.guide-icon {
+  font-size: 16px;
+  background: rgba(197, 160, 89, 0.15);
+  width: 28px;
+  height: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  flex-shrink: 0;
 }

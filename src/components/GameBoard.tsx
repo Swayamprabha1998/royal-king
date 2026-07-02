@@ -49,7 +49,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       emerald: '#4cd964',
       amethyst: '#5856d6',
       coin: '#ffeb60',
-      valve: '#8a9baf'
+      valve: '#8a9baf',
+      boulder: '#475569'
     };
 
     brokenTiles.forEach(tile => {
@@ -84,21 +85,20 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 
     if (newShards.length > 0) {
       setShards(prev => [...prev, ...newShards]);
-      // Remove shards after animation finishes
+      // Remove shards after animation finishes (850ms)
       setTimeout(() => {
         setShards(prev => prev.filter(s => !newShards.includes(s)));
       }, 850);
     }
   }, [brokenTiles]);
 
-  // Render SVG Icon for 3D Gemstones
+  // Render SVG Icon for 3D Gemstones / Blockers
   const renderTileIcon = (type: TileType) => {
     switch (type) {
       case 'ruby':
         return (
           <svg viewBox="0 0 40 40" className="tile-svg gem-3d">
             <polygon points="20,4 34,14 28,34 12,34 6,14" fill="url(#ruby-grad)" stroke="#ff2d55" strokeWidth="1" />
-            {/* 3D cut facets */}
             <polygon points="20,4 6,14 20,20" fill="rgba(255,255,255,0.22)" />
             <polygon points="20,4 34,14 20,20" fill="rgba(255,255,255,0.38)" />
             <polygon points="34,14 28,34 20,20" fill="rgba(0,0,0,0.12)" />
@@ -110,7 +110,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         return (
           <svg viewBox="0 0 40 40" className="tile-svg gem-3d">
             <path d="M20,4 C20,4 34,18 34,26 C34,32 28,36 20,36 C12,36 6,32 6,26 C6,18 20,4 20,4 Z" fill="url(#sapphire-grad)" stroke="#007aff" strokeWidth="1" />
-            {/* 3D cut facets */}
             <path d="M20,4 C20,4 20,26 20,36 C12,36 6,32 6,26 C6,18 20,4 20,4 Z" fill="rgba(255,255,255,0.22)" />
             <path d="M20,4 C20,4 34,18 34,26 C34,32 20,36 20,4 Z" fill="rgba(255,255,255,0.08)" />
             <path d="M20,8 C20,8 28,18 28,24 C28,26 26,28 20,28 Z" fill="rgba(255,255,255,0.25)" />
@@ -120,7 +119,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         return (
           <svg viewBox="0 0 40 40" className="tile-svg gem-3d">
             <polygon points="20,4 34,20 20,36 6,20" fill="url(#emerald-grad)" stroke="#4cd964" strokeWidth="1" />
-            {/* 3D cut facets */}
             <polygon points="20,4 6,20 20,20" fill="rgba(255,255,255,0.22)" />
             <polygon points="20,4 34,20 20,20" fill="rgba(255,255,255,0.38)" />
             <polygon points="34,20 20,36 20,20" fill="rgba(0,0,0,0.16)" />
@@ -131,7 +129,6 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         return (
           <svg viewBox="0 0 40 40" className="tile-svg gem-3d">
             <polygon points="20,4 34,12 34,28 20,36 6,28 6,12" fill="url(#amethyst-grad)" stroke="#5856d6" strokeWidth="1" />
-            {/* 3D cut facets */}
             <polygon points="20,4 6,12 20,20" fill="rgba(255,255,255,0.22)" />
             <polygon points="20,4 34,12 20,20" fill="rgba(255,255,255,0.38)" />
             <polygon points="34,12 34,28 20,20" fill="rgba(0,0,0,0.1)" />
@@ -160,6 +157,18 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             <circle cx="20" cy="20" r="4" fill="#cbd5e1" stroke="#334155" strokeWidth="1" />
           </svg>
         );
+      case 'boulder':
+        return (
+          <svg viewBox="0 0 40 40" className="tile-svg boulder-svg gem-3d">
+            <circle cx="20" cy="20" r="16" fill="url(#boulder-grad)" stroke="#1e293b" strokeWidth="2" />
+            <path d="M12,12 L16,18 L24,18 L28,12" stroke="#0f172a" strokeWidth="1.5" fill="none" />
+            <path d="M9,22 L17,26 L23,24 L31,21" stroke="#0f172a" strokeWidth="1.5" fill="none" />
+            <circle cx="15" cy="14" r="1.5" fill="#94a3b8" />
+            <circle cx="25" cy="14" r="1.5" fill="#94a3b8" />
+            <circle cx="20" cy="29" r="1.5" fill="#94a3b8" />
+            <path d="M7,15 A16,16 0 0,1 33,15 Z" fill="rgba(255,255,255,0.15)" />
+          </svg>
+        );
     }
   };
 
@@ -175,7 +184,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     const touch = e.touches[0];
     const dx = touch.clientX - swipeStart.x;
     const dy = touch.clientY - swipeStart.y;
-    const threshold = 30; // 30px swipe threshold
+    const threshold = 30;
 
     if (Math.abs(dx) > threshold || Math.abs(dy) > threshold) {
       let targetR = swipeStart.r;
@@ -198,7 +207,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     setSwipeStart(null);
   };
 
-  // Mouse handlers for desktop dragging compatibility
+  // Mouse handlers for desktop dragging
   const handleMouseDown = (e: React.MouseEvent, r: number, c: number) => {
     if (isBoardLocked) return;
     setSwipeStart({ r, c, x: e.clientX, y: e.clientY });
@@ -270,6 +279,11 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             <stop offset="50%" stopColor="#64748b" />
             <stop offset="100%" stopColor="#334155" />
           </linearGradient>
+          <linearGradient id="boulder-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#64748b" />
+            <stop offset="50%" stopColor="#475569" />
+            <stop offset="100%" stopColor="#1e293b" />
+          </linearGradient>
         </defs>
       </svg>
 
@@ -340,6 +354,27 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 <div className={`tile-icon-container ${cell.type}`}>
                   {renderTileIcon(cell.type)}
                 </div>
+
+                {/* Power-up badges */}
+                {cell.powerUp && (
+                  <div className={`powerup-badge ${cell.powerUp}`}>
+                    {cell.powerUp === 'lightning' && (
+                      <svg viewBox="0 0 24 24" className="badge-svg lightning-bolt">
+                        <path d="M11,1 L3,12 L10,12 L9,22 L19,10 L12,10 Z" fill="#ffeb3b" stroke="#f57f17" strokeWidth="1.5" />
+                      </svg>
+                    )}
+                    {cell.powerUp === 'bomb' && <div className="badge-core bomb-fuse"></div>}
+                    {cell.powerUp === 'blast_row' && <div className="badge-core blaster-arrows-h"></div>}
+                    {cell.powerUp === 'blast_col' && <div className="badge-core blaster-arrows-v"></div>}
+                  </div>
+                )}
+
+                {/* Ice wrapper blocks */}
+                {cell.frozen && (
+                  <div className="tile-frozen-ice">
+                    <div className="ice-cracks"></div>
+                  </div>
+                )}
               </div>
             );
           })
@@ -365,7 +400,10 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         ))}
       </div>
 
-      {/* Water grid overlay to give realistic submerged glass effect */}
+      {/* Ambient sub-surface God Rays effect */}
+      <div className="god-rays-overlay" />
+
+      {/* Water grid overlay */}
       <div 
         className="grid-water-overlay" 
         style={{
