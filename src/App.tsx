@@ -103,6 +103,8 @@ const App: React.FC = () => {
     setGameState,
     floatingCoins,
     brokenTiles,
+    firedPowerUps,
+    firedValveDrain,
     handleTileSwap,
     resetProgress
   } = useGameState() as any; // Cast for simpler swap access
@@ -200,6 +202,8 @@ const App: React.FC = () => {
                   onSelectTile={handleSelectTile}
                   onSwapTiles={onSwapTiles}
                   brokenTiles={brokenTiles}
+                  firedPowerUps={firedPowerUps || []}
+                  firedValveDrain={firedValveDrain || []}
                 />
 
                 {/* Floating Coins Overlay */}

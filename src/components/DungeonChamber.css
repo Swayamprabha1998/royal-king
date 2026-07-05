@@ -357,6 +357,26 @@
   50% { transform: translate(-50%, -15px) scaleY(0.95); }
 }
 
+/* Hands-up panic animation (begging / swimming / drowned) */
+.arms-hands-up {
+  animation: hands-up-tremble 0.5s ease-in-out infinite alternate;
+  transform-origin: 60px 106px;
+}
+
+@keyframes hands-up-tremble {
+  0%   { transform: translateY(0) rotate(-1deg); }
+  100% { transform: translateY(-5px) rotate(1deg); }
+}
+
+.arms-hands-up.fast-shake {
+  animation: hands-up-fast-shake 0.18s ease-in-out infinite alternate;
+}
+
+@keyframes hands-up-fast-shake {
+  0%   { transform: translateY(-3px) rotate(-3deg); }
+  100% { transform: translateY(-8px) rotate(3deg); }
+}
+
 /* Limbs animations */
 .hand-left-raised {
   animation: wave-hand-left 0.4s ease-in-out infinite alternate;

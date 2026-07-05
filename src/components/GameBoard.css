@@ -1,22 +1,40 @@
+/* ═══════════════════════════════════════════
+   BOARD CONTAINER
+═══════════════════════════════════════════ */
 .board-container {
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
   max-width: 480px;
-  background: rgba(255, 255, 255, 0.42) !important;
-  backdrop-filter: blur(24px) saturate(1.2);
-  -webkit-backdrop-filter: blur(24px) saturate(1.2);
-  border-radius: 16px;
-  border: 3.5px solid rgba(255, 255, 255, 0.6) !important; /* Elegant glass borders */
-  box-shadow: 
-    0 20px 50px rgba(0, 0, 0, 0.08), 
-    inset 0 0 25px rgba(255, 255, 255, 0.6),
-    0 0 0 3px #c5a059; /* Gold framing rim */
+  background: rgba(255, 255, 255, 0.48) !important;
+  backdrop-filter: blur(28px) saturate(1.4) brightness(1.04);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4) brightness(1.04);
+  border-radius: 18px;
+  border: 3px solid rgba(255, 255, 255, 0.65) !important;
+  box-shadow:
+    0 2px 0 #e8c96a,           /* top gold line */
+    0 24px 60px rgba(0,0,0,0.14),
+    0 6px 20px rgba(197,160,89,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.9),
+    inset 0 0 32px rgba(255,255,255,0.55),
+    0 0 0 3.5px #c5a059,       /* gold rim */
+    0 0 0 5px rgba(197,160,89,0.18); /* soft outer glow */
   overflow: hidden;
-  touch-action: none; /* Crucial to disable mobile zoom/scrolling while dragging tiles */
+  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
-  perspective: 1000px; /* Crucial for 3D tiles! */
+  perspective: 900px;
+}
+
+/* Subtle inner vignette for depth */
+.board-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.18) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 1;
 }
 
 .svg-defs-hidden {
@@ -25,7 +43,9 @@
   height: 0;
 }
 
-/* Background Cells */
+/* ═══════════════════════════════════════════
+   GRID CELL BACKGROUNDS — checkerboard depth
+═══════════════════════════════════════════ */
 .grid-cells-bg {
   position: absolute;
   top: 0;
@@ -39,216 +59,297 @@
   width: 12.5%;
   height: 12.5%;
   box-sizing: border-box;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(197, 160, 89, 0.14);
   transition: background-color 0.5s ease;
 }
 
+/* Checkerboard: odd cells slightly lighter */
+.grid-cell-bg:nth-child(odd) {
+  background-color: rgba(255, 255, 255, 0.32);
+}
+.grid-cell-bg:nth-child(even) {
+  background-color: rgba(220, 210, 195, 0.22);
+}
+
 .dry-cell {
-  background-color: rgba(255, 255, 255, 0.25);
+  /* handled by nth-child above */
 }
 
 .submerged-cell {
-  background-color: rgba(0, 191, 255, 0.08);
+  background-color: rgba(0, 160, 230, 0.13) !important;
+  border-color: rgba(0, 200, 255, 0.18) !important;
 }
 
-/* Wave boundary line */
+/* ═══════════════════════════════════════════
+   WATER LEVEL LINE
+═══════════════════════════════════════════ */
 .water-level-line {
   position: absolute;
-  top: -1.5px;
+  top: -2px;
   left: 0;
   width: 100%;
-  height: 4px;
-  background: linear-gradient(to right, #00f0ff, #007aff, #00f0ff);
-  box-shadow: 0 0 10px #00d4ff;
+  height: 5px;
+  background: linear-gradient(to right,
+    transparent 0%,
+    #00f0ff 15%,
+    #ffffff 50%,
+    #007aff 85%,
+    transparent 100%);
+  background-size: 200% 100%;
+  box-shadow: 0 0 8px #00d4ff, 0 0 20px rgba(0,212,255,0.4);
   z-index: 10;
-  animation: ripple-line 1.5s linear infinite;
+  animation: water-line-flow 2s linear infinite;
 }
 
-@keyframes ripple-line {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; }
+@keyframes water-line-flow {
+  0%   { background-position: 100% 0; opacity: 0.85; }
+  50%  { opacity: 1; }
+  100% { background-position: -100% 0; opacity: 0.85; }
 }
 
-/* Algae Blocker styling */
+/* ═══════════════════════════════════════════
+   ALGAE
+═══════════════════════════════════════════ */
 .algae-layer {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   pointer-events: none;
   z-index: 5;
 }
 
 .algae-lock {
   position: absolute;
-  width: 12.5%;
-  height: 12.5%;
+  width: 12.5%; height: 12.5%;
   display: flex;
   justify-content: center;
   align-items: center;
   box-sizing: border-box;
 }
 
-.algae-vines {
-  width: 80%;
-  height: 80%;
-  background-color: rgba(46, 204, 113, 0.25);
-  border: 2px dashed #2ecc71;
-  border-radius: 35%;
-  box-shadow: inset 0 0 8px rgba(39, 174, 96, 0.4), 0 0 6px rgba(46, 204, 113, 0.6);
-  animation: algae-pulse 2s ease-in-out infinite alternate;
+.algae-ivy-svg {
+  width: 94%;
+  height: 94%;
+  overflow: visible;
+  animation: ivy-sway 3.2s ease-in-out infinite alternate;
+  transform-origin: center center;
+  filter: drop-shadow(0 2px 4px rgba(27,94,32,0.45));
 }
 
-@keyframes algae-pulse {
-  0% { transform: scale(0.9); box-shadow: 0 0 4px rgba(46, 204, 113, 0.4); }
-  100% { transform: scale(1.05); box-shadow: 0 0 10px rgba(46, 204, 113, 0.8); }
+@keyframes ivy-sway {
+  0%   { transform: rotate(-2deg) scale(0.95); }
+  40%  { transform: rotate(0.5deg) scale(1.02); }
+  70%  { transform: rotate(1.8deg) scale(0.98); }
+  100% { transform: rotate(-1deg) scale(1.01); }
 }
 
-/* Tiles layer and styling */
+/* ═══════════════════════════════════════════
+   TILES LAYER
+═══════════════════════════════════════════ */
 .tiles-layer {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   z-index: 8;
 }
 
 .tile-wrapper {
   position: absolute;
-  width: 12.5%;
-  height: 12.5%;
+  width: 12.5%; height: 12.5%;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: grab;
   box-sizing: border-box;
-  padding: 4px;
-  /* Smooth transform transition for matching/sliding */
-  transition: 
-    top 0.24s cubic-bezier(0.25, 1, 0.5, 1), 
-    left 0.22s cubic-bezier(0.25, 1, 0.5, 1), 
-    transform 0.15s ease,
+  padding: 3px;
+  transition:
+    top  0.26s cubic-bezier(0.22, 1, 0.44, 1),
+    left 0.24s cubic-bezier(0.22, 1, 0.44, 1),
+    transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1),
     opacity 0.2s ease;
   will-change: top, left, transform;
-  transform-style: preserve-3d; /* Enable 3D child layering */
+  transform-style: preserve-3d;
 }
 
-.tile-wrapper:active {
-  cursor: grabbing;
-}
+.tile-wrapper:active { cursor: grabbing; }
 
+/* ── tile icon container ── */
 .tile-icon-container {
-  width: 90%;
-  height: 90%;
+  width: 92%;
+  height: 92%;
   display: flex;
   justify-content: center;
   align-items: center;
-  transition: transform 0.15s ease;
+  border-radius: 10px;
+  transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1), filter 0.18s ease;
 }
 
+/* ── base gem SVG — richer layered shadow ── */
 .tile-svg {
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.2));
+  filter:
+    drop-shadow(0 4px 6px rgba(0,0,0,0.28))
+    drop-shadow(0 1px 2px rgba(0,0,0,0.18));
+  transition: filter 0.18s ease;
 }
 
-/* New tile drop-in — gentle slide from above with fade, no jarring scale flash */
+/* ── per-gem colored ambient shadows ── */
+.tile-icon-container.ruby    .tile-svg { filter: drop-shadow(0 4px 8px rgba(255,45,85,0.45))  drop-shadow(0 1px 3px rgba(0,0,0,0.25)); }
+.tile-icon-container.sapphire .tile-svg { filter: drop-shadow(0 4px 8px rgba(0,122,255,0.45)) drop-shadow(0 1px 3px rgba(0,0,0,0.25)); }
+.tile-icon-container.emerald  .tile-svg { filter: drop-shadow(0 4px 8px rgba(76,217,100,0.45)) drop-shadow(0 1px 3px rgba(0,0,0,0.25)); }
+.tile-icon-container.amethyst .tile-svg { filter: drop-shadow(0 4px 8px rgba(88,86,214,0.45)) drop-shadow(0 1px 3px rgba(0,0,0,0.25)); }
+.tile-icon-container.coin     .tile-svg { filter: drop-shadow(0 4px 8px rgba(255,210,0,0.55))  drop-shadow(0 1px 3px rgba(0,0,0,0.2)); }
+.tile-icon-container.valve    .tile-svg { filter: drop-shadow(0 4px 10px rgba(212,160,0,0.55)) drop-shadow(0 1px 3px rgba(0,0,0,0.3)); }
+.tile-icon-container.boulder  .tile-svg { filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5))      drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+
+/* ═══════════════════════════════════════════
+   SPAWN ANIMATION — bouncy pop-in
+═══════════════════════════════════════════ */
 .tile-wrapper.spawned {
-  animation: spawn-drop 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: spawn-drop 0.38s cubic-bezier(0.22, 1.4, 0.36, 1) both;
 }
 
 @keyframes spawn-drop {
-  0%   { opacity: 0; transform: translateY(-20px) scale(0.85); }
-  100% { opacity: 1; transform: translateY(0)    scale(1); }
+  0%   { opacity: 0; transform: translateY(-28px) scale(0.7) rotateX(20deg); }
+  60%  { opacity: 1; transform: translateY(3px)   scale(1.06); }
+  100% { opacity: 1; transform: translateY(0)     scale(1); }
 }
 
-/* Selection outline styling */
+/* ═══════════════════════════════════════════
+   HOVER — 3D lift with tilt
+═══════════════════════════════════════════ */
+@media (hover: hover) {
+  .tile-wrapper:hover {
+    transform: scale(1.14) translateZ(16px) rotateX(8deg) rotateY(6deg);
+    z-index: 10;
+  }
+  .tile-wrapper:hover .tile-svg {
+    filter:
+      drop-shadow(0 8px 14px rgba(0,0,0,0.32))
+      drop-shadow(0 0 8px rgba(255,255,255,0.25));
+  }
+  .tile-wrapper:hover .tile-icon-container.ruby    .tile-svg { filter: drop-shadow(0 8px 16px rgba(255,45,85,0.65))  drop-shadow(0 0 6px rgba(255,45,85,0.3)); }
+  .tile-wrapper:hover .tile-icon-container.sapphire .tile-svg { filter: drop-shadow(0 8px 16px rgba(0,122,255,0.65)) drop-shadow(0 0 6px rgba(0,122,255,0.3)); }
+  .tile-wrapper:hover .tile-icon-container.emerald  .tile-svg { filter: drop-shadow(0 8px 16px rgba(76,217,100,0.65)) drop-shadow(0 0 6px rgba(76,217,100,0.3)); }
+  .tile-wrapper:hover .tile-icon-container.amethyst .tile-svg { filter: drop-shadow(0 8px 16px rgba(88,86,214,0.65)) drop-shadow(0 0 6px rgba(88,86,214,0.3)); }
+  .tile-wrapper:hover .tile-icon-container.coin     .tile-svg { filter: drop-shadow(0 8px 16px rgba(255,210,0,0.7))  drop-shadow(0 0 8px rgba(255,210,0,0.35)); }
+}
+
+/* ═══════════════════════════════════════════
+   SELECTION — elevated + pulsing ring
+═══════════════════════════════════════════ */
 .tile-wrapper.selected {
-  transform: scale(1.2) translateZ(24px) rotateX(10deg);
+  transform: scale(1.22) translateZ(30px) rotateX(12deg);
   z-index: 20;
 }
 
-@media (hover: hover) {
-  .tile-wrapper:hover {
-    transform: scale(1.1) translateZ(12px) rotateY(12deg);
-    z-index: 10;
-  }
-}
-
 .tile-wrapper.selected .tile-icon-container {
-  filter: drop-shadow(0 0 10px var(--selected-glow, #fff));
-  animation: pulse-selection 1.2s infinite ease-in-out;
+  animation: pulse-selection 1s infinite ease-in-out;
 }
 
-.tile-wrapper.selected .tile-icon-container.ruby { --selected-glow: #ff2d55; }
+.tile-wrapper.selected .tile-icon-container.ruby     { --selected-glow: #ff2d55; }
 .tile-wrapper.selected .tile-icon-container.sapphire { --selected-glow: #007aff; }
-.tile-wrapper.selected .tile-icon-container.emerald { --selected-glow: #4cd964; }
+.tile-wrapper.selected .tile-icon-container.emerald  { --selected-glow: #4cd964; }
 .tile-wrapper.selected .tile-icon-container.amethyst { --selected-glow: #5856d6; }
-.tile-wrapper.selected .tile-icon-container.coin { --selected-glow: #ffd200; }
-.tile-wrapper.selected .tile-icon-container.valve { --selected-glow: #888; }
+.tile-wrapper.selected .tile-icon-container.coin     { --selected-glow: #ffd200; }
+.tile-wrapper.selected .tile-icon-container.valve    { --selected-glow: #ffd200; }
+
+.tile-wrapper.selected .tile-icon-container .tile-svg {
+  filter:
+    drop-shadow(0 0 10px var(--selected-glow, #fff))
+    drop-shadow(0 0 22px var(--selected-glow, rgba(255,255,255,0.5)))
+    drop-shadow(0 6px 12px rgba(0,0,0,0.3));
+}
 
 @keyframes pulse-selection {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
+  0%, 100% { transform: scale(1);    }
+  50%       { transform: scale(1.1); }
 }
 
-/* Dynamic glass buoyancy water shader */
+/* ═══════════════════════════════════════════
+   WATER OVERLAY (inside board)
+═══════════════════════════════════════════ */
 .grid-water-overlay {
   position: absolute;
-  bottom: 0;
-  left: 0;
+  bottom: 0; left: 0;
   width: 100%;
   background: linear-gradient(
     to bottom,
-    rgba(0, 212, 255, 0.15) 0%,
-    rgba(0, 122, 255, 0.3) 100%
+    rgba(0,212,255,0.14) 0%,
+    rgba(0,122,255,0.28) 100%
   );
-  backdrop-filter: blur(1.5px) saturate(1.4) hue-rotate(5deg);
-  -webkit-backdrop-filter: blur(1.5px) saturate(1.4) hue-rotate(5deg);
-  border-top: 1.5px solid rgba(0, 212, 255, 0.5);
+  backdrop-filter: blur(2px) saturate(1.5) hue-rotate(6deg);
+  -webkit-backdrop-filter: blur(2px) saturate(1.5) hue-rotate(6deg);
+  border-top: 1.5px solid rgba(0,212,255,0.45);
   pointer-events: none;
-  z-index: 9; /* Sits right between background cells and tiles */
-  transition: top 0.6s ease-in-out, height 0.6s ease-in-out;
+  z-index: 9;
+  transition: height 0.6s ease-in-out;
 }
 
-/* Floating effect for submerged tiles */
+/* ═══════════════════════════════════════════
+   WET / SUBMERGED TILES
+═══════════════════════════════════════════ */
 .tile-wrapper.wet {
-  animation: tile-float 3s ease-in-out infinite alternate;
+  animation: tile-float 3.2s ease-in-out infinite alternate;
+}
+.tile-wrapper.wet .tile-icon-container {
+  filter: saturate(1.3) brightness(0.88);
 }
 
 @keyframes tile-float {
-  0% { transform: translateY(-1.5px) rotate(-1.2deg); }
-  100% { transform: translateY(1.5px) rotate(1.2deg); }
+  0%   { transform: translateY(-2px) rotate(-1.4deg) scale(0.97); }
+  100% { transform: translateY(2px)  rotate(1.4deg)  scale(1.02); }
 }
 
-/* Coin custom floating details */
+/* ═══════════════════════════════════════════
+   COIN SPIN
+═══════════════════════════════════════════ */
 .gold-coin-svg {
-  animation: spin-coin 5s linear infinite;
+  animation: spin-coin 4.5s ease-in-out infinite;
 }
 
 @keyframes spin-coin {
-  0%, 100% { transform: scaleX(1); }
-  50% { transform: scaleX(0.85); }
+  0%, 100% { transform: scaleX(1)    rotateY(0deg); }
+  45%       { transform: scaleX(0.8) rotateY(20deg); }
+  50%       { transform: scaleX(0.75); }
+  55%       { transform: scaleX(0.8) rotateY(-20deg); }
 }
 
-/* Valve wheel turn animation on matches */
+/* ═══════════════════════════════════════════
+   VALVE WHEEL
+═══════════════════════════════════════════ */
 .valve-svg {
-  transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: valve-idle-spin 8s linear infinite;
+  transition: filter 0.3s ease;
 }
-
 .tile-wrapper:hover .valve-svg {
-  transform: rotate(90deg);
+  animation: valve-idle-spin 1.4s linear infinite;
+  filter: drop-shadow(0 0 8px rgba(255,210,0,0.75));
+}
+@keyframes valve-idle-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
-/* Jewel Shards Break Particles Layer */
+/* ═══════════════════════════════════════════
+   BOULDER WOBBLE
+═══════════════════════════════════════════ */
+.boulder-svg {
+  animation: boulder-wobble 3.5s ease-in-out infinite alternate;
+}
+@keyframes boulder-wobble {
+  0%   { transform: rotate(-3deg) scale(0.97) translateY(1px); }
+  100% { transform: rotate(3deg)  scale(1.03) translateY(-1px); }
+}
+
+/* ═══════════════════════════════════════════
+   JEWEL SHARDS — bigger, mixed shapes
+═══════════════════════════════════════════ */
 .shards-explosion-layer {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   z-index: 15;
   pointer-events: none;
   overflow: visible;
@@ -256,184 +357,426 @@
 
 .jewel-shard {
   position: absolute;
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   opacity: 0;
-  clip-path: polygon(50% 0%, 0% 100%, 100% 100%); /* Triangular shard vector shape */
-  animation: shard-fly-key 0.8s cubic-bezier(0.1, 0.8, 0.25, 1) forwards;
+  border-radius: 1px;
+  animation: shard-fly-key 0.85s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
   will-change: transform, opacity;
 }
 
+/* Alternate shard shapes */
+.jewel-shard:nth-child(odd)  { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+.jewel-shard:nth-child(even) { clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); width: 9px; height: 9px; }
+.jewel-shard:nth-child(3n)   { clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); width: 7px; height: 7px; }
+
 @keyframes shard-fly-key {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1.5) rotate(0deg);
+  0%  {
+    transform: translate3d(0,0,0) scale(1.8) rotate(0deg);
     opacity: 0;
   }
-  10% {
-    opacity: 1;
-  }
-  80% {
-    opacity: 0.95;
-  }
+  8%  { opacity: 1; }
+  75% { opacity: 0.9; }
   100% {
-    transform: translate3d(var(--dx), var(--dy), 0) scale(0) rotate(var(--rot));
+    transform: translate3d(var(--dx), var(--dy), 0) scale(0.1) rotate(var(--rot));
     opacity: 0;
   }
 }
 
-/* Power-Up badges styling */
-.powerup-badge {
+/* ═══════════════════════════════════════════
+   POWER-UP VISUAL EFFECTS LAYER
+═══════════════════════════════════════════ */
+.powerup-effects-layer {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 16px;
-  height: 16px;
-  z-index: 12;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 50%;
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8), 0 2px 4px rgba(0,0,0,0.15);
+  inset: 0;
   pointer-events: none;
+  z-index: 18;
+  overflow: visible;
 }
 
-.powerup-badge.lightning {
-  background: #ffeb3b;
-  border: 1px solid #f57f17;
-  animation: badge-lightning-glow 1.2s infinite alternate;
+/* ── ⚡ LIGHTNING B — expanding electric rings ── */
+.pfx-lightning {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 0; height: 0;
 }
 
-@keyframes badge-lightning-glow {
-  0% { box-shadow: 0 0 4px #ffd54f; }
-  100% { box-shadow: 0 0 10px #ffeb3b, 0 0 15px #ffd54f; }
-}
-
-.badge-svg {
-  width: 80%;
-  height: 80%;
-}
-
-.tile-wrapper .powerup-badge.blast_row {
-  background: linear-gradient(to bottom, #00ecd4, #00acc1);
-  border: 1px solid #006064;
-}
-
-.tile-wrapper .powerup-badge.blast_col {
-  background: linear-gradient(to bottom, #03d9f4, #039be5);
-  border: 1px solid #01579b;
-}
-
-.tile-wrapper .powerup-badge.bomb {
-  background: linear-gradient(to bottom, #ff4081, #d81b60);
-  border: 1px solid #880e4f;
-  animation: badge-bomb-glow 0.8s infinite alternate;
-}
-
-@keyframes badge-bomb-glow {
-  0% { box-shadow: 0 0 2px #ff4081; }
-  100% { box-shadow: 0 0 8px #ff4081, 0 0 12px #d81b60; }
-}
-
-.badge-core {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.blaster-arrows-h::before {
-  content: '↔';
-  font-size: 9px;
-  font-weight: 900;
-  color: #fff;
-  line-height: 1;
-}
-
-.blaster-arrows-v::before {
-  content: '↕';
-  font-size: 9px;
-  font-weight: 900;
-  color: #fff;
-  line-height: 1;
-}
-
-.bomb-fuse {
-  width: 6px;
-  height: 6px;
-  background: #000;
+.lightning-ring {
+  position: absolute;
   border-radius: 50%;
-  position: relative;
+  border: 3px solid #ffeb3b;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  animation: lightning-ring-expand 0.65s ease-out forwards;
 }
-.bomb-fuse::before {
-  content: '';
+.lightning-ring.lr1 { animation-delay: 0ms;   border-color: #ffffff; border-width: 4px; }
+.lightning-ring.lr2 { animation-delay: 90ms;  border-color: #ffeb3b; border-width: 3px; }
+.lightning-ring.lr3 { animation-delay: 180ms; border-color: #ffc107; border-width: 2px; }
+
+@keyframes lightning-ring-expand {
+  0%   { width: 10px;  height: 10px;  opacity: 1;   }
+  60%  { opacity: 0.7; }
+  100% { width: 160px; height: 160px; opacity: 0;   }
+}
+
+.lightning-arcs-svg {
   position: absolute;
-  top: -3px;
-  right: -3px;
-  width: 4px;
-  height: 4px;
-  background: radial-gradient(circle, #fff, #f44336);
+  width: 200px; height: 200px;
+  transform: translate(-50%, -50%);
+  animation: arcs-flash 0.55s ease-out forwards;
+}
+
+.arc-line {
+  opacity: 0;
+  animation: arc-appear 0.55s ease-out forwards;
+}
+.arc-0 { animation-delay: 0ms; }
+.arc-1 { animation-delay: 30ms; }
+.arc-2 { animation-delay: 60ms; }
+.arc-3 { animation-delay: 20ms; }
+.arc-4 { animation-delay: 50ms; }
+.arc-5 { animation-delay: 10ms; }
+.arc-6 { animation-delay: 40ms; }
+.arc-7 { animation-delay: 70ms; }
+
+@keyframes arc-appear {
+  0%   { opacity: 0; stroke-width: 3; }
+  15%  { opacity: 1; }
+  60%  { opacity: 0.8; }
+  100% { opacity: 0; stroke-width: 0.5; }
+}
+
+.lightning-flash {
+  position: absolute;
+  width: 60px; height: 60px;
   border-radius: 50%;
-  animation: spark-fuse 0.4s infinite alternate;
+  background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,235,59,0.6) 40%, transparent 70%);
+  transform: translate(-50%, -50%);
+  animation: center-flash 0.3s ease-out forwards;
 }
 
-@keyframes spark-fuse {
-  0% { transform: scale(0.8); }
-  100% { transform: scale(1.4); opacity: 0.9; }
+@keyframes center-flash {
+  0%   { width: 20px; height: 20px; opacity: 1; }
+  50%  { width: 70px; height: 70px; opacity: 0.9; }
+  100% { width: 90px; height: 90px; opacity: 0; }
 }
 
-/* Ice wrapper blocks */
-.tile-frozen-ice {
+/* ── ↔ BLAST ROW C — domino sequential flash ── */
+.pfx-blast-row {
   position: absolute;
-  top: 2px;
-  left: 2px;
-  right: 2px;
-  bottom: 2px;
-  background: rgba(0, 230, 255, 0.22);
-  border: 2px solid rgba(255, 255, 255, 0.75);
-  border-radius: 8px;
-  z-index: 10;
-  pointer-events: none;
-  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.65), 0 4px 8px rgba(0, 180, 216, 0.25);
-  backdrop-filter: blur(0.5px);
-}
-
-.ice-cracks {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background-image: 
-    linear-gradient(45deg, transparent 46%, rgba(255,255,255,0.7) 50%, transparent 54%),
-    linear-gradient(-45deg, transparent 46%, rgba(255,255,255,0.7) 50%, transparent 54%);
-  background-size: 90% 90%;
-  background-position: center;
-}
-
-/* Wavy God Rays overlays */
-.god-rays-overlay {
-  position: absolute;
-  top: 0;
   left: 0;
   width: 100%;
+  height: 12.5%;
+  pointer-events: none;
+}
+
+.domino-cell {
+  position: absolute;
+  width: 12.5%;
+  height: 100%;
+  background: var(--domino-color, rgba(0,229,255,0.85));
+  border-radius: 6px;
+  opacity: 0;
+  transform-origin: center bottom;
+  animation: domino-flip 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  box-shadow: 0 0 18px rgba(0,229,255,0.7), inset 0 0 10px rgba(255,255,255,0.4);
+}
+
+@keyframes domino-flip {
+  0%   { opacity: 0;   transform: scaleY(1)   translateY(0); }
+  15%  { opacity: 1;   transform: scaleY(1.15) translateY(-6px); }
+  40%  { opacity: 1;   transform: scaleX(0.08) scaleY(0.9); }
+  70%  { opacity: 0.8; transform: scaleX(1.2)  translateY(-14px) scaleY(0.6); }
+  100% { opacity: 0;   transform: scaleX(0)   translateY(-24px); }
+}
+
+/* ── ↕ BLAST COL A — vertical laser ── */
+.pfx-blast-col {
+  position: absolute;
+  top: 0;
+  width: 12.5%;
   height: 100%;
   pointer-events: none;
-  z-index: 9; /* Placed exactly under the grid water shader */
-  opacity: 0.14;
-  background: 
-    linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.4) 45%, rgba(255,255,255,0.65) 50%, rgba(255, 255, 255, 0.4) 55%, transparent 65%);
-  background-size: 250% 100%;
-  animation: wave-god-rays 6s linear infinite alternate;
+  overflow: visible;
+}
+
+.laser-glow {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 24px;
+  height: 0%;
+  transform: translateX(-50%);
+  background: linear-gradient(to bottom,
+    rgba(64,196,255,0) 0%,
+    rgba(64,196,255,0.5) 10%,
+    rgba(64,196,255,0.5) 90%,
+    rgba(64,196,255,0) 100%);
+  filter: blur(4px);
+  border-radius: 12px;
+  animation: laser-grow 0.55s ease-out forwards;
+}
+
+.laser-core {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 6px;
+  height: 0%;
+  transform: translateX(-50%);
+  background: linear-gradient(to bottom,
+    rgba(255,255,255,0) 0%,
+    #ffffff 5%,
+    #ffffff 95%,
+    rgba(255,255,255,0) 100%);
+  border-radius: 3px;
+  box-shadow: 0 0 8px #40c4ff, 0 0 20px #40c4ff;
+  animation: laser-grow 0.5s ease-out forwards;
+}
+
+@keyframes laser-grow {
+  0%   { height: 0%;   opacity: 0; top: 50%; }
+  10%  { opacity: 1; }
+  40%  { height: 50%;  top: 0%; }
+  70%  { height: 100%; top: 0%; opacity: 1; }
+  100% { height: 100%; top: 0%; opacity: 0; }
+}
+
+.laser-spark {
+  position: absolute;
+  left: 50%;
+  width: 8px; height: 3px;
+  border-radius: 3px;
+  background: #40c4ff;
+  box-shadow: 0 0 6px #40c4ff;
+  opacity: 0;
+  animation: laser-spark-fly 0.4s ease-out forwards;
+}
+
+@keyframes laser-spark-fly {
+  0%   { opacity: 0; transform: translateX(-50%) scaleX(0); }
+  20%  { opacity: 1; transform: translateX(-50%) scaleX(1); }
+  100% { opacity: 0; transform: translateX(calc(-50% + var(--spark-dir))) scaleX(0.3); }
+}
+
+/* ── 💣 BOMB A — shockwave rings + debris ── */
+.pfx-bomb {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 0; height: 0;
+}
+
+.shockwave {
+  position: absolute;
+  border-radius: 50%;
+  border: 4px solid rgba(255,100,0,0.8);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  animation: shockwave-expand 0.7s ease-out forwards;
+}
+.shockwave.sw1 { animation-delay: 0ms;   border-color: rgba(255,255,255,0.9);  border-width: 5px; }
+.shockwave.sw2 { animation-delay: 80ms;  border-color: rgba(255,140,0,0.8);    border-width: 4px; }
+.shockwave.sw3 { animation-delay: 160ms; border-color: rgba(255,60,0,0.6);     border-width: 3px; }
+
+@keyframes shockwave-expand {
+  0%   { width: 8px;   height: 8px;   opacity: 1; }
+  50%  { opacity: 0.6; }
+  100% { width: 200px; height: 200px; opacity: 0; }
+}
+
+.bomb-flash {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,200,0.95) 0%, rgba(255,140,0,0.7) 35%, transparent 70%);
+  transform: translate(-50%, -50%);
+  animation: bomb-flash-burst 0.35s ease-out forwards;
+}
+
+@keyframes bomb-flash-burst {
+  0%   { width: 10px;  height: 10px;  opacity: 1; }
+  40%  { width: 80px;  height: 80px;  opacity: 1; }
+  100% { width: 110px; height: 110px; opacity: 0; }
+}
+
+.bomb-debris {
+  position: absolute;
+  width: 9px; height: 9px;
+  border-radius: 2px;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  animation: debris-fly 0.65s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+}
+
+@keyframes debris-fly {
+  0%   { opacity: 0; transform: translate(-50%,-50%) scale(0) rotate(0deg); }
+  12%  { opacity: 1; transform: translate(-50%,-50%) scale(1.4) rotate(60deg); }
+  80%  { opacity: 0.7; }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--dbx)), calc(-50% + var(--dby))) scale(0.2) rotate(var(--dbr));
+  }
+}
+
+/* ═══════════════════════════════════════════
+   POWER-UP TILES
+═══════════════════════════════════════════ */
+.tile-icon-container.powerup-tile {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.powerup-icon-svg {
+  width: 85%;
+  height: 85%;
+  display: block;
+}
+
+/* ═══════════════════════════════════════════
+   ICE / FROZEN
+═══════════════════════════════════════════ */
+.tile-frozen-ice {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 10;
+  pointer-events: none;
+  border-radius: 9px;
+  overflow: visible;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.icicle-svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  overflow: visible;
+  animation: icicle-drip 2.8s ease-in-out infinite alternate;
+  filter: drop-shadow(0 3px 6px rgba(0,180,220,0.35));
+}
+
+@keyframes icicle-drip {
+  0%   { filter: drop-shadow(0 2px 4px rgba(0,180,220,0.28)); opacity: 0.88; }
+  50%  { filter: drop-shadow(0 4px 10px rgba(100,210,255,0.55)); opacity: 1; }
+  100% { filter: drop-shadow(0 2px 6px rgba(0,200,240,0.4)); opacity: 0.92; }
+}
+
+/* ═══════════════════════════════════════════
+   GOD RAYS
+═══════════════════════════════════════════ */
+.god-rays-overlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 9;
+  opacity: 0.16;
+  background:
+    linear-gradient(108deg,
+      transparent 30%,
+      rgba(255,255,255,0.35) 42%,
+      rgba(255,255,255,0.6) 50%,
+      rgba(255,255,255,0.35) 58%,
+      transparent 70%);
+  background-size: 280% 100%;
+  animation: wave-god-rays 7s ease-in-out infinite alternate;
 }
 
 @keyframes wave-god-rays {
-  0% { background-position: -50% 0; }
-  100% { background-position: 150% 0; }
+  0%   { background-position: -60% 0; }
+  100% { background-position: 160% 0; }
 }
 
-/* Boulder custom float shake */
-.boulder-svg {
-  animation: boulder-wobble 4s ease-in-out infinite alternate;
+/* ═══════════════════════════════════════════
+   VALVE DRAIN WAVE SWEEP EFFECT
+═══════════════════════════════════════════ */
+.drain-wave-sweep {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 22;
+  overflow: hidden;
+  border-radius: inherit;
 }
 
-@keyframes boulder-wobble {
-  0% { transform: rotate(-2.5deg) scale(0.98); }
-  100% { transform: rotate(2.5deg) scale(1.02); }
+/* Horizontal wave bands cascading top → bottom */
+.drain-wave-band {
+  position: absolute;
+  left: 0; right: 0;
+  height: 22%;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 190, 255, 0.55) 0%,
+    rgba(0, 140, 220, 0.28) 60%,
+    transparent 100%
+  );
+  border-top: 2px solid rgba(100, 230, 255, 0.8);
+  animation: drain-band-fall 1.55s cubic-bezier(0.4, 0, 0.8, 1) forwards;
+}
+
+@keyframes drain-band-fall {
+  0%   { top: -24%; opacity: 0; }
+  8%   { opacity: 0.95; }
+  75%  { opacity: 0.75; }
+  100% { top: 112%;   opacity: 0; }
+}
+
+/* Small water particles rushing down + converging */
+.drain-wave-particle {
+  position: absolute;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, rgba(200, 245, 255, 0.95), rgba(0, 160, 230, 0.6));
+  animation: drain-particle-fall 1.3s ease-in forwards;
+}
+
+@keyframes drain-particle-fall {
+  0%   { transform: translate(0, 0) scale(1);   opacity: 1; }
+  80%  { opacity: 0.7; }
+  100% { transform: translate(var(--pwx), 105vh) scale(0.25); opacity: 0; }
+}
+
+/* Bottom vortex indicator */
+.drain-vortex-fx {
+  position: absolute;
+  bottom: 3%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48px; height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(0, 160, 255, 0.55), transparent);
+  border: 1.5px solid rgba(100, 210, 255, 0.75);
+  animation: drain-vortex-beat 0.65s ease-in-out infinite alternate;
+}
+
+@keyframes drain-vortex-beat {
+  0%   { transform: translateX(-50%) scaleX(0.8);  opacity: 0.55; }
+  100% { transform: translateX(-50%) scaleX(1.18); opacity: 1; }
+}
+
+/* "−WATER" floating label */
+.drain-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  color: rgba(160, 235, 255, 0.95);
+  text-shadow:
+    0 0 8px rgba(0, 200, 255, 0.9),
+    0 0 20px rgba(0, 180, 255, 0.6);
+  animation: drain-label-pop 1.8s ease-out forwards;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+@keyframes drain-label-pop {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+  15%  { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+  35%  { transform: translate(-50%, -50%) scale(1); }
+  75%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -80%) scale(0.9); }
 }

@@ -35,6 +35,8 @@ export function useGameState() {
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [floatingCoins, setFloatingCoins] = useState<{ id: string; r: number; c: number; value: number }[]>([]);
   const [brokenTiles, setBrokenTiles] = useState<{ id: string; r: number; c: number; type: TileType }[]>([]);
+  const [firedPowerUps, setFiredPowerUps] = useState<{ id: string; r: number; c: number; type: 'blast_row' | 'blast_col' | 'bomb' | 'lightning' }[]>([]);
+  const [firedValveDrain, setFiredValveDrain] = useState<string[]>([]);
 
   // Keep references to prevent closure stale state in async intervals
   const gridRef = useRef<GridState>([]);
@@ -215,6 +217,13 @@ export function useGameState() {
           gameAudio.playCoin();
         } else if (isValveActivated) {
           gameAudio.playValve();
+          // Trigger Drain Wave Sweep visual effect + sound
+          gameAudio.playValveDrain();
+          const drainId = `valve_drain_${Date.now()}_${Math.random()}`;
+          setFiredValveDrain(prev => [...prev, drainId]);
+          setTimeout(() => {
+            setFiredValveDrain(prev => prev.filter(id => id !== drainId));
+          }, 2200);
         } else {
           gameAudio.playMatch(combo);
         }
@@ -243,6 +252,27 @@ export function useGameState() {
           setTimeout(() => {
             setBrokenTiles(prev => prev.filter(t => !newBroken.includes(t)));
           }, 800);
+        }
+
+        // Detect & fire power-up visual effects + sounds
+        const fired = matches
+          .filter(({ r, c }) => currentGrid[r][c]?.powerUp)
+          .map(({ r, c }) => ({
+            id: `pfx_${r}_${c}_${Date.now()}_${Math.random()}`,
+            r, c,
+            type: currentGrid[r][c]!.powerUp!
+          }));
+        if (fired.length > 0) {
+          setFiredPowerUps(prev => [...prev, ...fired]);
+          fired.forEach(f => {
+            if (f.type === 'lightning')  gameAudio.playLightning();
+            else if (f.type === 'blast_row') gameAudio.playBlastRow();
+            else if (f.type === 'blast_col') gameAudio.playBlastCol();
+            else if (f.type === 'bomb')  gameAudio.playBomb();
+          });
+          setTimeout(() => {
+            setFiredPowerUps(prev => prev.filter(p => !fired.find(f => f.id === p.id)));
+          }, 950);
         }
 
         // Step 1: Clear matched tiles from the grid
@@ -361,7 +391,17 @@ export function useGameState() {
       }
     }
 
+    // Fire lightning visual effect
+    const lightningFired = matchCoords
+      .filter(({ r, c }) => currentGrid[r][c]?.powerUp === 'lightning')
+      .map(({ r, c }) => ({ id: `pfx_l_${r}_${c}_${Date.now()}`, r, c, type: 'lightning' as const }));
+    if (lightningFired.length > 0) {
+      setFiredPowerUps(prev => [...prev, ...lightningFired]);
+      setTimeout(() => setFiredPowerUps(prev => prev.filter(p => !lightningFired.find(f => f.id === p.id))), 950);
+    }
+
     // Play electric/valve sounds
+    gameAudio.playLightning();
     gameAudio.playValve();
 
     // Trigger visual shard explosions
@@ -537,6 +577,8 @@ export function useGameState() {
     setGameState,
     floatingCoins,
     brokenTiles,
+    firedPowerUps,
+    firedValveDrain,
     resetProgress
   };
 }

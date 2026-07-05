@@ -379,6 +379,24 @@ export function scanMatches(grid: GridState): {
     }
   }
 
+  // 3.5 Adjacent power-up activation: a match next to a power-up tile (any direction) triggers it
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cell = grid[r][c];
+      if (cell?.powerUp && !matchMask[r][c]) {
+        const dirs: [number, number][] = [[-1,0],[1,0],[0,-1],[0,1]];
+        const isNextToMatch = dirs.some(([dr, dc]) => {
+          const nr = r + dr;
+          const nc = c + dc;
+          return nr >= 0 && nr < rows && nc >= 0 && nc < cols && matchMask[nr][nc];
+        });
+        if (isNextToMatch) {
+          matchMask[r][c] = true;
+        }
+      }
+    }
+  }
+
   // 4. POWER-UP EXPLOSIONS (Iterative blast solver)
   const explodedCoords = new Set<string>();
   let newExplosions = true;
