@@ -1,0 +1,224 @@
+/* ═══════════════════════════════════════════════════════
+   ChapterIntroScreen — cinematic chapter opener
+   ═══════════════════════════════════════════════════════ */
+
+.chapter-intro-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  box-sizing: border-box;
+  overflow: hidden;
+  animation: chapter-intro-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.chapter-intro-screen.leaving {
+  animation: chapter-intro-out 0.7s ease forwards;
+}
+
+@keyframes chapter-intro-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes chapter-intro-out {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(1.04); }
+}
+
+/* Per-chapter backgrounds */
+.chapter-intro-screen.theme-warm     { background: radial-gradient(ellipse at 50% 60%, #2a1400 0%, #0e0800 100%); }
+.chapter-intro-screen.theme-rose     { background: radial-gradient(ellipse at 50% 60%, #280a16 0%, #0e0408 100%); }
+.chapter-intro-screen.theme-cold     { background: radial-gradient(ellipse at 50% 60%, #051828 0%, #020810 100%); }
+.chapter-intro-screen.theme-dark     { background: radial-gradient(ellipse at 50% 60%, #0e0420 0%, #04020e 100%); }
+.chapter-intro-screen.theme-battle   { background: radial-gradient(ellipse at 50% 60%, #280404 0%, #0e0202 100%); }
+.chapter-intro-screen.theme-ethereal { background: radial-gradient(ellipse at 50% 60%, #041428 0%, #020608 100%); }
+
+/* Floating particles */
+.chapter-intro-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.chapter-intro-particle {
+  position: absolute;
+  bottom: -10px;
+  border-radius: 50%;
+  background: rgba(255, 200, 120, 0.4);
+  animation: particle-float linear infinite;
+}
+
+.theme-rose     .chapter-intro-particle { background: rgba(255, 160, 200, 0.35); }
+.theme-cold     .chapter-intro-particle { background: rgba(160, 200, 255, 0.35); }
+.theme-dark     .chapter-intro-particle { background: rgba(160, 100, 255, 0.3); }
+.theme-battle   .chapter-intro-particle { background: rgba(255, 100, 80, 0.3); }
+.theme-ethereal .chapter-intro-particle { background: rgba(100, 200, 255, 0.3); }
+
+@keyframes particle-float {
+  0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+  10%  { opacity: 0.8; }
+  90%  { opacity: 0.5; }
+  100% { transform: translateY(-100vh) translateX(20px) scale(0.4); opacity: 0; }
+}
+
+/* Content block */
+.chapter-intro-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 480px;
+  gap: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Eyebrow: Chapter III · The Sea Voyage */
+.chapter-intro-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.3);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.chapter-intro-eyebrow.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.chapter-intro-roman { color: rgba(255, 200, 80, 0.6); }
+.chapter-intro-dot   { color: rgba(255, 255, 255, 0.15); }
+.chapter-intro-subtitle { color: rgba(255, 255, 255, 0.3); }
+
+/* Main title */
+.chapter-intro-title {
+  font-family: 'Georgia', serif;
+  font-size: clamp(28px, 6vw, 42px);
+  font-weight: 400;
+  color: #f0e4c0;
+  letter-spacing: 2px;
+  margin: 0 0 28px;
+  line-height: 1.2;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.chapter-intro-title.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Chapter verse */
+.chapter-intro-verse {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 24px;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+
+.chapter-intro-verse.visible {
+  opacity: 1;
+}
+
+.chapter-intro-verse-line {
+  font-family: 'Georgia', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: rgba(230, 210, 170, 0.75);
+  line-height: 1.7;
+  margin: 0;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.chapter-intro-verse.visible .chapter-intro-verse-line {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Gold rule */
+.chapter-intro-verse::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 1px;
+  background: rgba(255, 200, 60, 0.3);
+  margin: 16px auto 0;
+}
+
+/* Description prose */
+.chapter-intro-description {
+  font-size: 13px;
+  color: rgba(200, 185, 155, 0.55);
+  line-height: 1.75;
+  margin: 0 0 32px;
+  max-width: 360px;
+  letter-spacing: 0.3px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.chapter-intro-description.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* CTA */
+.chapter-intro-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.chapter-intro-cta.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.chapter-intro-btn {
+  padding: 14px 36px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 200, 60, 0.4);
+  border-radius: 8px;
+  background: rgba(255, 200, 60, 0.08);
+  color: #f8d060;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.chapter-intro-btn:hover {
+  background: rgba(255, 200, 60, 0.16);
+  border-color: rgba(255, 200, 60, 0.7);
+  box-shadow: 0 0 24px rgba(255, 200, 60, 0.15);
+}
+
+.chapter-intro-tap {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.18);
+  text-transform: uppercase;
+}

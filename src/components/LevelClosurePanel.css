@@ -1,0 +1,222 @@
+/* ═══════════════════════════════════════════════════════
+   LevelClosurePanel — Victory closure screen
+   ═══════════════════════════════════════════════════════ */
+
+.closure-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  z-index: 100;
+  animation: closure-bg-fade 0.6s ease forwards;
+}
+
+@keyframes closure-bg-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Per-chapter backdrop tints */
+.closure-theme-warm    { background: radial-gradient(ellipse at center, rgba(80, 40, 0, 0.88) 0%, rgba(12, 8, 2, 0.96) 100%); }
+.closure-theme-rose    { background: radial-gradient(ellipse at center, rgba(80, 20, 40, 0.88) 0%, rgba(12, 4, 8, 0.96) 100%); }
+.closure-theme-cold    { background: radial-gradient(ellipse at center, rgba(10, 40, 80, 0.88) 0%, rgba(2, 8, 18, 0.96) 100%); }
+.closure-theme-dark    { background: radial-gradient(ellipse at center, rgba(20, 10, 50, 0.92) 0%, rgba(4, 2, 14, 0.97) 100%); }
+.closure-theme-battle  { background: radial-gradient(ellipse at center, rgba(70, 10, 10, 0.90) 0%, rgba(14, 2, 2, 0.97) 100%); }
+.closure-theme-ethereal{ background: radial-gradient(ellipse at center, rgba(20, 50, 80, 0.88) 0%, rgba(4, 8, 20, 0.96) 100%); }
+
+/* Card */
+.closure-card {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: closure-card-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes closure-card-rise {
+  from { transform: translateY(28px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* Chapter badge */
+.closure-chapter-badge {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.38);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.closure-chapter-end-tag {
+  background: rgba(255, 200, 60, 0.15);
+  border: 1px solid rgba(255, 200, 60, 0.3);
+  color: #f8d060;
+  font-size: 9px;
+  letter-spacing: 2px;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+/* Level title */
+.closure-level-title {
+  font-family: 'Georgia', serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: #f0e8d0;
+  letter-spacing: 1px;
+  margin: 0 0 24px;
+}
+
+/* Verse block */
+.closure-verse {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.closure-verse-line {
+  font-family: 'Georgia', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: rgba(240, 220, 180, 0.0);
+  letter-spacing: 0.5px;
+  line-height: 1.7;
+  margin: 0;
+  transition: color 0.7s ease, opacity 0.7s ease;
+  opacity: 0;
+}
+
+.closure-verse-line.visible {
+  color: rgba(240, 220, 180, 0.88);
+  opacity: 1;
+}
+
+/* Prose closure sentence */
+.closure-sentence {
+  font-size: 13px;
+  color: rgba(200, 180, 140, 0.0);
+  line-height: 1.7;
+  margin: 0 0 20px;
+  max-width: 320px;
+  letter-spacing: 0.3px;
+  transition: color 0.8s ease, opacity 0.8s ease;
+  opacity: 0;
+}
+
+.closure-sentence.visible {
+  color: rgba(200, 180, 140, 0.7);
+  opacity: 1;
+}
+
+/* Divider */
+.closure-divider {
+  width: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(255, 200, 60, 0.4), transparent);
+  margin-bottom: 20px;
+  transition: width 0.7s ease;
+  opacity: 0;
+}
+
+.closure-divider.visible {
+  width: 200px;
+  opacity: 1;
+}
+
+/* Stats row */
+.closure-stats {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 28px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.closure-stats.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.closure-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.closure-stat-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: rgba(255, 255, 255, 0.3);
+  text-transform: uppercase;
+}
+
+.closure-stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8d060;
+  letter-spacing: 1px;
+}
+
+/* Actions */
+.closure-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 280px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.closure-actions.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.closure-btn {
+  padding: 13px 24px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  border: none;
+  width: 100%;
+}
+
+.closure-btn.primary {
+  background: linear-gradient(135deg, #b07010, #e8a820, #b07010);
+  color: #1a0e00;
+  box-shadow: 0 4px 20px rgba(230, 168, 32, 0.3);
+}
+
+.closure-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 28px rgba(230, 168, 32, 0.5);
+}
+
+.closure-btn.secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.closure-btn.secondary:hover {
+  color: rgba(255, 255, 255, 0.7);
+  border-color: rgba(255, 255, 255, 0.25);
+}

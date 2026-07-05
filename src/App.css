@@ -33,52 +33,111 @@ body {
   background-position: center;
 }
 
-/* Universal Header */
+/* Universal Header — Parchment (matches map theme) */
 .app-header {
   height: 52px;
-  background-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 252, 238, 0.92);
+  border-bottom: 1.5px solid rgba(180, 140, 40, 0.25);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 2.5px solid var(--color-gold);
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 16px;
+  justify-content: space-between;
+  padding: 0 0 0 18px;
   box-sizing: border-box;
   z-index: 40;
-  box-shadow: 0 4px 12px rgba(139, 105, 20, 0.05);
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: 0 2px 12px rgba(160, 120, 30, 0.08);
+}
+
+/* Gold accent line along bottom */
+.app-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1.5px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(180, 140, 40, 0.25) 15%,
+    rgba(200, 160, 50, 0.5) 50%,
+    rgba(180, 140, 40, 0.25) 85%,
+    transparent 100%
+  );
 }
 
 .header-brand {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 130px;
 }
 
-.crown-icon {
+.brand-title {
+  font-family: 'Georgia', serif;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #7a5010;
+  line-height: 1;
+}
+
+.brand-sub {
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: #a07830;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+/* Centred crown + chapter name */
+.header-crown-centre {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+}
+
+.header-crown-icon {
   font-size: 20px;
+  line-height: 1;
   animation: crown-sway 3s ease-in-out infinite alternate;
   display: inline-block;
 }
 
 @keyframes crown-sway {
-  0% { transform: rotate(-10deg); }
-  100% { transform: rotate(10deg); }
+  0%   { transform: rotate(-8deg); }
+  100% { transform: rotate(8deg); }
 }
 
-.brand-title {
-  font-family: 'Georgia', serif;
-  font-weight: 900;
-  font-size: 16px;
-  letter-spacing: 3px;
-  color: #8b6914; /* Dark golden brown */
-  text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+.header-chapter-name {
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  color: #a07830;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Right icon panel */
+.header-right-panel {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 14px;
+  border-left: 1px solid rgba(180, 140, 40, 0.18);
 }
 
 .sound-toggle-btn {
   background: none;
   border: none;
-  color: #5c6b73;
+  color: #a07830;
   cursor: pointer;
   padding: 6px;
   border-radius: 50%;
@@ -89,8 +148,8 @@ body {
 }
 
 .sound-toggle-btn:hover {
-  color: #8b6914;
-  background-color: rgba(255, 255, 255, 0.3);
+  color: #5c3d0a;
+  background-color: rgba(180, 140, 40, 0.1);
 }
 
 /* Main Content Router */
@@ -100,6 +159,24 @@ body {
   position: relative;
   overflow: hidden;
 }
+
+/* Gameplay screen — per-chapter tint (Glass Light) */
+.gameplay-screen { transition: background 0.7s ease; }
+
+.gameplay-screen.theme-warm     { background: rgba(255, 245, 225, 0.38); }
+.gameplay-screen.theme-rose     { background: rgba(255, 235, 245, 0.38); }
+.gameplay-screen.theme-cold     { background: rgba(230, 245, 255, 0.38); }
+.gameplay-screen.theme-dark     { background: rgba(240, 232, 255, 0.38); }
+.gameplay-screen.theme-battle   { background: rgba(255, 235, 230, 0.38); }
+.gameplay-screen.theme-ethereal { background: rgba(225, 250, 248, 0.38); }
+
+/* HUD accent colour per theme */
+.gameplay-screen.theme-warm   .stats-hud { border-color: rgba(200, 130, 30, 0.35); }
+.gameplay-screen.theme-rose   .stats-hud { border-color: rgba(200, 60, 100, 0.3); }
+.gameplay-screen.theme-cold   .stats-hud { border-color: rgba(30, 130, 210, 0.3); }
+.gameplay-screen.theme-dark   .stats-hud { border-color: rgba(130, 60, 220, 0.3); }
+.gameplay-screen.theme-battle .stats-hud { border-color: rgba(200, 40, 20, 0.3); }
+.gameplay-screen.theme-ethereal .stats-hud { border-color: rgba(20, 170, 160, 0.3); }
 
 /* Gameplay HUD Panel */
 .gameplay-screen {

@@ -4,6 +4,10 @@ import { DungeonChamber } from './components/DungeonChamber';
 import { GameBoard } from './components/GameBoard';
 import { LevelSelector } from './components/LevelSelector';
 import { GameplayTutorial } from './components/GameplayTutorial';
+import { LevelClosurePanel } from './components/LevelClosurePanel';
+import { DreamWhisperOverlay } from './components/DreamWhisperOverlay';
+import { ChapterIntroScreen } from './components/ChapterIntroScreen';
+import { CHAPTERS, getLevelStory, getChapterForLevel, isFirstLevelOfChapter } from './services/storyData';
 import './App.css';
 
 interface FloatingCoinItemProps {
@@ -114,27 +118,97 @@ const App: React.FC = () => {
     handleTileSwap?.(r1, c1, r2, c2);
   };
 
+  // Chapter intro — show cinematic when entering the first level of a chapter
+  const [chapterIntroChapter, setChapterIntroChapter] = React.useState<typeof CHAPTERS[0] | null>(null);
+  const [pendingLevelStart, setPendingLevelStart] = React.useState<(() => void) | null>(null);
+
+  const selectLevelWithIntro = React.useCallback((levelId: number) => {
+    if (isFirstLevelOfChapter(levelId)) {
+      const chapter = getChapterForLevel(levelId);
+      if (chapter) {
+        setChapterIntroChapter(chapter);
+        setPendingLevelStart(() => () => selectLevel(levelId));
+        return;
+      }
+    }
+    selectLevel(levelId);
+  }, [selectLevel]);
+
+  // Derive current chapter theme for gameplay theming
+  const currentChapter = getChapterForLevel(currentLevelId);
+  const currentTheme = currentChapter?.ambientTheme ?? 'warm';
+
+  // Header shows the player's highest-reached chapter when on the map,
+  // or the level being played when in-game
+  const headerChapter = gameState === 'menu'
+    ? getChapterForLevel(highestLevelUnlocked)
+    : currentChapter;
+
+  // Dream whisper — fires once when moves hit the halfway point
+  const [whisperShown, setWhisperShown] = React.useState(false);
+  const [showWhisper, setShowWhisper] = React.useState(false);
+
+  React.useEffect(() => {
+    if (gameState !== 'playing') {
+      setWhisperShown(false);
+      setShowWhisper(false);
+      return;
+    }
+    if (whisperShown) return;
+    const half = Math.floor(levelConfig.movesLimit / 2);
+    if (movesRemaining <= half && movesRemaining > 0) {
+      setWhisperShown(true);
+      setShowWhisper(true);
+    }
+  }, [movesRemaining, gameState, levelConfig.movesLimit, whisperShown]);
+
+  // Chapter intro overlay — rendered over everything
+  if (chapterIntroChapter) {
+    return (
+      <div className="app-viewport">
+        <ChapterIntroScreen
+          chapter={chapterIntroChapter}
+          onDone={() => {
+            const start = pendingLevelStart;
+            setChapterIntroChapter(null);
+            setPendingLevelStart(null);
+            start?.();
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="app-viewport">
       {waterLevel >= 80 && gameState === 'playing' && <div className="danger-vignette-glow" />}
-      {/* Top Universal Header */}
+      {/* Top Universal Header — Design D: Split Crown */}
       <header className="app-header">
         <div className="header-brand">
-          <span className="crown-icon">👑</span>
-          <span className="brand-title">AQUA MATCH</span>
+          <span className="brand-title">GLIMMERTIDE</span>
+          <span className="brand-sub">Save the King</span>
         </div>
 
-        <button className="sound-toggle-btn" onClick={toggleSound} aria-label="Toggle Sound">
-          {isSoundEnabled ? (
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-              <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-            </svg>
-          ) : (
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-              <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.21.05-.42.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
-            </svg>
-          )}
-        </button>
+        <div className="header-crown-centre">
+          <span className="header-crown-icon">👑</span>
+          <span className="header-chapter-name">
+            {headerChapter ? headerChapter.title : 'The Kingdom'}
+          </span>
+        </div>
+
+        <div className="header-right-panel">
+          <button className="sound-toggle-btn" onClick={toggleSound} aria-label="Toggle Sound">
+            {isSoundEnabled ? (
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.21.05-.42.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+              </svg>
+            )}
+          </button>
+        </div>
       </header>
 
       {/* Main Screen Router */}
@@ -142,11 +216,11 @@ const App: React.FC = () => {
         {gameState === 'menu' ? (
           <LevelSelector
             highestLevelUnlocked={highestLevelUnlocked}
-            onSelectLevel={selectLevel}
+            onSelectLevel={selectLevelWithIntro}
             onResetProgress={resetProgress}
           />
         ) : (
-          <div className="gameplay-screen">
+          <div className={`gameplay-screen theme-${currentTheme}`}>
             {/* Level Stats HUD */}
             <div className="stats-hud">
               <button 
@@ -204,6 +278,7 @@ const App: React.FC = () => {
                   brokenTiles={brokenTiles}
                   firedPowerUps={firedPowerUps || []}
                   firedValveDrain={firedValveDrain || []}
+                  ambientTheme={currentTheme}
                 />
 
                 {/* Floating Coins Overlay */}
@@ -252,67 +327,28 @@ const App: React.FC = () => {
               </div>
             )}
 
-            {/* 3. Victory Popup with Confetti Celebration */}
-            {gameState === 'victory' && (
-              <div className="modal-overlay victory-active">
-                <div className="endgame-modal victory-modal rescued-banner-container">
-                  <h2 className="modal-title rescued-title animate-bounce-pop">KING RESCUED!!!</h2>
-                  <p className="modal-reason">The dungeon door has opened and the King escaped safely!</p>
-                  <p className="modal-stats">Score: {score} | Moves Remaining: {movesRemaining}</p>
-                  <div className="modal-actions">
-                    {currentLevelId < 5 ? (
-                      <button 
-                        className="modal-btn primary pulse" 
-                        onClick={() => selectLevel(currentLevelId + 1)}
-                      >
-                        Next Chamber
-                      </button>
-                    ) : (
-                      <button 
-                        className="modal-btn primary pulse" 
-                        onClick={() => setGameState('menu')}
-                      >
-                        Campaign Completed!
-                      </button>
-                    )}
-                    <button className="modal-btn secondary" onClick={() => setGameState('menu')}>
-                      Back to Map
-                    </button>
-                  </div>
-                </div>
+            {/* 2b. Dream Whisper — Queen's voice at half-moves */}
+            {showWhisper && gameState === 'playing' && (() => {
+              const story = getLevelStory(currentLevelId);
+              return story ? (
+                <DreamWhisperOverlay
+                  text={story.dreamWhisper}
+                  onDone={() => setShowWhisper(false)}
+                />
+              ) : null;
+            })()}
 
-                {/* Confetti Explosion System */}
-                <div className="confetti-cannon">
-                  {Array.from({ length: 60 }).map((_, i) => {
-                    const size = Math.random() * 11 + 6;
-                    const color = ['#ff2d55', '#ff9500', '#ffcc00', '#4cd964', '#5ac8fa', '#007aff', '#5856d6', '#ffeb60'][Math.floor(Math.random() * 8)];
-                    const angle = Math.random() * 360;
-                    const delay = Math.random() * 0.7;
-                    const duration = Math.random() * 1.5 + 1.2;
-                    const distance = Math.random() * 200 + 100;
-                    const tx = Math.cos((angle * Math.PI) / 180) * distance;
-                    const ty = Math.sin((angle * Math.PI) / 180) * distance - 60;
-                    const shape = Math.random() > 0.45 ? 'circle' : 'square';
-                    
-                    return (
-                      <div
-                        key={i}
-                        className={`confetti-particle shape-${shape}`}
-                        style={{
-                          width: `${size}px`,
-                          height: `${size}px`,
-                          backgroundColor: color,
-                          '--tx': `${tx}px`,
-                          '--ty': `${ty}px`,
-                          '--rot': `${Math.random() * 720 - 360}deg`,
-                          animationDelay: `${delay}s`,
-                          animationDuration: `${duration}s`,
-                        } as React.CSSProperties}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
+            {/* 3. Victory — Narrative Closure Panel */}
+            {gameState === 'victory' && (
+              <LevelClosurePanel
+                levelId={currentLevelId}
+                score={score}
+                movesRemaining={movesRemaining}
+                coinsCollected={coinsCollected}
+                targetCoins={levelConfig.targetCoins}
+                onNextLevel={() => selectLevelWithIntro(currentLevelId + 1)}
+                onBackToMap={() => setGameState('menu')}
+              />
             )}
           </div>
         )}

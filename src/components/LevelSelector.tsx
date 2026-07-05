@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useState } from 'react';
+import { CHAPTERS, type AmbientTheme } from '../services/storyData';
 import { LEVELS } from '../services/boardLogic';
 import './LevelSelector.css';
 
@@ -8,272 +9,265 @@ interface LevelSelectorProps {
   onResetProgress: () => void;
 }
 
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+
+const CHAPTER_EMOJI: Record<AmbientTheme, string> = {
+  warm: '🕯️', rose: '🌹', cold: '❄️', dark: '🌑', battle: '⚔️', ethereal: '✨',
+};
+
+interface ChapterTheme {
+  accent: string;
+  light: string;
+  colBg: string;
+  colBorder: string;
+  nodeDone: string;
+  nodeDoneBorder: string;
+  glow: string;
+  textDark: string;
+}
+
+const THEME: Record<AmbientTheme, ChapterTheme> = {
+  warm:     { accent: '#c87808', light: '#fef3c7', colBg: 'rgba(254,243,199,0.55)', colBorder: 'rgba(200,120,8,0.2)',   nodeDone: 'radial-gradient(circle at 38% 32%, #fde68a, #b45309)', nodeDoneBorder: '#f59e0b', glow: 'rgba(245,158,11,0.5)',  textDark: '#78350f' },
+  rose:     { accent: '#be185d', light: '#fce7f3', colBg: 'rgba(252,231,243,0.55)', colBorder: 'rgba(190,24,93,0.2)',   nodeDone: 'radial-gradient(circle at 38% 32%, #fbcfe8, #9d174d)',  nodeDoneBorder: '#ec4899', glow: 'rgba(236,72,153,0.5)',  textDark: '#831843' },
+  cold:     { accent: '#1d4ed8', light: '#dbeafe', colBg: 'rgba(219,234,254,0.55)', colBorder: 'rgba(29,78,216,0.2)',   nodeDone: 'radial-gradient(circle at 38% 32%, #bfdbfe, #1e40af)',  nodeDoneBorder: '#3b82f6', glow: 'rgba(59,130,246,0.5)',  textDark: '#1e3a8a' },
+  dark:     { accent: '#6d28d9', light: '#ede9fe', colBg: 'rgba(237,233,254,0.55)', colBorder: 'rgba(109,40,217,0.2)',  nodeDone: 'radial-gradient(circle at 38% 32%, #ddd6fe, #5b21b6)',  nodeDoneBorder: '#8b5cf6', glow: 'rgba(139,92,246,0.5)', textDark: '#4c1d95' },
+  battle:   { accent: '#b91c1c', light: '#fee2e2', colBg: 'rgba(254,226,226,0.55)', colBorder: 'rgba(185,28,28,0.2)',   nodeDone: 'radial-gradient(circle at 38% 32%, #fca5a5, #991b1b)',  nodeDoneBorder: '#ef4444', glow: 'rgba(239,68,68,0.5)',   textDark: '#7f1d1d' },
+  ethereal: { accent: '#065f46', light: '#d1fae5', colBg: 'rgba(209,250,229,0.55)', colBorder: 'rgba(6,95,70,0.2)',    nodeDone: 'radial-gradient(circle at 38% 32%, #6ee7b7, #064e3b)',  nodeDoneBorder: '#10b981', glow: 'rgba(16,185,129,0.5)', textDark: '#064e3b' },
+};
+
 export const LevelSelector: React.FC<LevelSelectorProps> = ({
   highestLevelUnlocked,
   onSelectLevel,
-  onResetProgress
+  onResetProgress,
 }) => {
-  const scrollTrackRef = useRef<HTMLDivElement>(null);
-  const activeNodeRef = useRef<HTMLButtonElement>(null);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
-  const [scrollX, setScrollX] = useState(0);
+  const [hoveredLevel, setHoveredLevel] = useState<number | null>(null);
 
-  // Scroll handler to capture horizontal offsets for parallax calculations
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    setScrollX(e.currentTarget.scrollLeft);
-  };
-
-  // Auto-scroll focus on the highest unlocked active node when map loads
-  useEffect(() => {
-    if (activeNodeRef.current) {
-      setTimeout(() => {
-        activeNodeRef.current?.scrollIntoView({
-          behavior: 'smooth',
-          inline: 'center',
-          block: 'nearest'
-        });
-      }, 350);
-    }
-  }, [highestLevelUnlocked]);
+  const totalCompleted = Math.max(0, highestLevelUnlocked - 1);
+  const currentChapter = CHAPTERS.find(ch =>
+    ch.levels.some(l => l.levelNumber === highestLevelUnlocked)
+  );
 
   return (
-    <div className="level-selector-screen">
-      {/* Top Floating Header */}
-      <div className="map-floating-header">
-        <h1 className="map-title-large">ROYAL DUNGEON</h1>
-        <p className="map-subtitle-large">Scroll left/right to explore & rescue the King</p>
-      </div>
+    <div className="sb-screen">
 
-      {/* Full-Screen Scrollable Track Viewport */}
-      <div className="map-scroll-container" ref={scrollTrackRef} onScroll={handleScroll}>
-        <div className="map-scroll-track">
-          
-          {/* Parallax Background Layer (Slow scroll speed) */}
-          <div className="map-parallax-bg" style={{ transform: `translateX(${scrollX * 0.45}px)` }}>
-            <div className="bg-decor bg-torch-post-1">🏺</div>
-            <div className="bg-decor bg-shield">🛡️</div>
-            <div className="bg-decor bg-key">🗝️</div>
-            <div className="bg-decor bg-torch-post-2">🕯️</div>
-            <div className="bg-decor bg-gem">💎</div>
-            <div className="bg-decor bg-crown-decor">👑</div>
-          </div>
-
-          {/* Chapter 1: The Guardhouse (Levels 1-2) */}
-          <div className="map-region region-guardhouse" />
-
-          {/* Chapter 2: The Flooded Vaults (Levels 3-5) */}
-          <div className="map-region region-vaults" />
-
-          {/* Chapter 3: The Frozen Crypts (Levels 6-8) */}
-          <div className="map-region region-crypts" />
-
-          {/* Frosted Glass Divider Panels at Chapter Boundaries */}
-          <div className="glass-divider-panel" style={{ left: '442px' }}>
-            <span className="divider-label">SEWER VAULTS</span>
-          </div>
-          <div className="glass-divider-panel" style={{ left: '1042px' }}>
-            <span className="divider-label">FROZEN CRYPTS</span>
-          </div>
-
-          {/* Golden Spline Path Line */}
-          <svg className="saga-map-road-svg" viewBox="0 0 1700 460" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="road-grad-h" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#ffd700" />
-                <stop offset="35%" stopColor="#ffa500" />
-                <stop offset="70%" stopColor="#ff8c00" />
-                <stop offset="100%" stopColor="#ff5e00" />
-              </linearGradient>
-            </defs>
-            <path 
-              d="M 126,246 
-                 C 226,136 226,136 326,136 
-                 C 426,306 426,306 526,306 
-                 C 626,146 626,146 726,146 
-                 C 826,316 826,316 926,316 
-                 C 1026,136 1026,136 1126,136 
-                 C 1226,306 1226,306 1326,306 
-                 C 1426,206 1426,206 1526,206" 
-              stroke="url(#road-grad-h)" 
-              strokeWidth="7" 
-              strokeLinecap="round" 
-              strokeDasharray="10,8"
-              className="crawling-road-line"
-            />
-          </svg>
-
-          {/* Level Nodes */}
-          {Object.values(LEVELS).map((level) => {
-            const isUnlocked = level.id <= highestLevelUnlocked;
-            const isCompleted = level.id < highestLevelUnlocked;
-            const isActive = level.id === highestLevelUnlocked;
-
-            // Coordinates mapping matching the SVG path centers exactly
-            const nodeOffsets: Record<number, { left: number; top: number }> = {
-              1: { left: 100, top: 220 },
-              2: { left: 300, top: 110 },
-              3: { left: 500, top: 280 },
-              4: { left: 700, top: 120 },
-              5: { left: 900, top: 290 },
-              6: { left: 1100, top: 110 },
-              7: { left: 1300, top: 280 },
-              8: { left: 1500, top: 180 }
-            };
-
-            const pos = nodeOffsets[level.id] || { left: 100, top: 220 };
-            const stars = parseInt(localStorage.getItem(`royal_rescue_stars_level_${level.id}`) || '0');
-
-            return (
-              <button
-                key={level.id}
-                ref={isActive ? activeNodeRef : null}
-                className={`level-node node-${level.id} ${isUnlocked ? 'unlocked' : 'locked'} ${isCompleted ? 'completed' : ''} ${isActive ? 'active-pulse' : ''}`}
-                style={{
-                  left: `${pos.left}px`,
-                  top: `${pos.top}px`
-                }}
-                onClick={() => isUnlocked && onSelectLevel(level.id)}
-                disabled={!isUnlocked}
-              >
-                {/* 1. Floating 3D Gold Crown Marker above Active Level */}
-                {isActive && (
-                  <div className="active-crown-marker">
-                    <svg viewBox="0 0 24 24" className="crown-svg">
-                      <defs>
-                        <linearGradient id="crown-gold-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                          <stop offset="0%" stopColor="#ffe082" />
-                          <stop offset="60%" stopColor="#ffb300" />
-                          <stop offset="100%" stopColor="#b78600" />
-                        </linearGradient>
-                      </defs>
-                      <path d="M2,18 L22,18 L20,7 L16,12 L12,5 L8,12 L4,7 Z" fill="url(#crown-gold-grad)" stroke="#9c6d00" strokeWidth="1" />
-                      <circle cx="12" cy="5" r="1.3" fill="#ffe082" />
-                      <circle cx="4" cy="7" r="1.3" fill="#ffe082" />
-                      <circle cx="20" cy="7" r="1.3" fill="#ffe082" />
-                      <line x1="4" y1="18" x2="20" y2="18" stroke="#ffe082" strokeWidth="1" />
-                    </svg>
-                  </div>
-                )}
-
-                {/* 2. Overlapping chains overlay on Locked Levels */}
-                {!isUnlocked && (
-                  <div className="node-chains-overlay">
-                    <div className="chain-arc h-chain"></div>
-                    <div className="chain-arc v-chain"></div>
-                    <span className="padlock-badge">🔒</span>
-                  </div>
-                )}
-
-                {/* Floating Gold Stars Rating */}
-                {isUnlocked && stars > 0 && (
-                  <div className="node-stars">
-                    {Array(stars).fill(null).map((_, i) => (
-                      <span key={i} className="star-gold">★</span>
-                    ))}
-                  </div>
-                )}
-
-                <div className="node-number">
-                  {isUnlocked ? (
-                    level.id
-                  ) : (
-                    '' // Hide number when locked, showing padlock instead
-                  )}
-                </div>
-
-                <div className="node-tooltip">
-                  <div className="tooltip-name">{level.name}</div>
-                  <div className="tooltip-details">Target: {level.targetCoins} Coins</div>
-                  {level.hasAlgae && <span className="badge algae-badge">Algae</span>}
-                  {level.hasValves && <span className="badge valve-badge">Valves</span>}
-                  {level.id === 5 && <span className="badge ice-badge">Ice</span>}
-                  {level.id === 6 && <span className="badge boulder-badge">Boulders</span>}
-                  {level.id === 8 && <span className="badge boss-badge">Boss</span>}
-                </div>
-              </button>
-            );
-          })}
-
-          {/* Parallax Foreground Layer (Fast scroll speed in opposite direction) */}
-          <div className="map-parallax-fg" style={{ transform: `translateX(${-scrollX * 0.18}px)` }}>
-            <div className="fg-bubble fb1">🫧</div>
-            <div className="fg-bubble fb2">🫧</div>
-            <div className="fg-bubble fb3">🫧</div>
-            <div className="fg-bubble fb4">🫧</div>
-          </div>
-
+      {/* ── Light parchment header ─────────────────── */}
+      <div className="sb-header">
+        <div className="sb-header-left">
+          {currentChapter && (
+            <>
+              <span className="sb-header-emoji">{CHAPTER_EMOJI[currentChapter.ambientTheme]}</span>
+              <div className="sb-header-info">
+                <span className="sb-header-chapter">
+                  Ch. {ROMAN[currentChapter.chapterNumber - 1]} · {currentChapter.title}
+                </span>
+                <span className="sb-header-sub">{currentChapter.subtitle}</span>
+              </div>
+            </>
+          )}
+        </div>
+        <div className="sb-header-right">
+          <span className="sb-progress">{totalCompleted} / 30</span>
+          <button className="sb-btn-outline" onClick={() => setIsGuideOpen(true)}>?</button>
+          <button className="sb-btn-outline sb-btn-reset" onClick={onResetProgress}>↺ Reset</button>
         </div>
       </div>
 
-      {/* Floating Bottom Navigation */}
-      <div className="map-bottom-controls" style={{ display: 'flex', gap: '10px' }}>
-        <button 
-          className="map-control-btn help-btn" 
-          onClick={() => setIsGuideOpen(true)}
-        >
-          📖 Survival Guide
-        </button>
-        <button 
-          className="map-control-btn reset-btn" 
-          onClick={onResetProgress}
-          style={{ borderColor: '#ef4444', color: '#ef4444' }}
-        >
-          🗑️ Reset Progress
-        </button>
+      {/* ── 6 Chapter columns ─────────────────────── */}
+      <div className="sb-columns">
+        {CHAPTERS.map((ch, ci) => {
+          const theme = THEME[ch.ambientTheme];
+          const chapterFirstLevel = ch.levels[0].levelNumber;
+          const chapterLastLevel  = ch.levels[ch.levels.length - 1].levelNumber;
+          const isChapterUnlocked = highestLevelUnlocked >= chapterFirstLevel;
+          const isChapterComplete = highestLevelUnlocked > chapterLastLevel;
+          const isChapterCurrent  = !isChapterComplete && isChapterUnlocked;
+
+          return (
+            <div
+              key={ch.chapterNumber}
+              className={`sb-col ${isChapterUnlocked ? 'col-unlocked' : 'col-locked'} ${isChapterCurrent ? 'col-current' : ''}`}
+              style={{
+                '--col-bg': theme.colBg,
+                '--col-border': theme.colBorder,
+                '--col-accent': theme.accent,
+                '--col-glow': theme.glow,
+              } as React.CSSProperties}
+            >
+              {/* Chapter header card */}
+              <div
+                className="sb-chap-header"
+                style={{
+                  background: isChapterUnlocked ? theme.light : 'rgba(245,240,230,0.5)',
+                  borderColor: isChapterUnlocked ? theme.colBorder : 'rgba(180,170,150,0.2)',
+                  opacity: isChapterUnlocked ? 1 : 0.45,
+                }}
+              >
+                <span className="sb-chap-emoji">{CHAPTER_EMOJI[ch.ambientTheme]}</span>
+                <span className="sb-chap-roman" style={{ color: isChapterUnlocked ? theme.accent : '#b0a898' }}>
+                  {ROMAN[ci]}
+                </span>
+                <span className="sb-chap-title" style={{ color: isChapterUnlocked ? theme.textDark : '#b0a898' }}>
+                  {ch.title}
+                </span>
+                <span className="sb-chap-sub" style={{ color: isChapterUnlocked ? theme.accent : '#c0b8a8' }}>
+                  {ch.subtitle}
+                </span>
+                {isChapterComplete && (
+                  <span className="sb-chap-complete-badge" style={{ background: theme.light, color: theme.accent, borderColor: theme.colBorder }}>
+                    ✓ Done
+                  </span>
+                )}
+              </div>
+
+              {/* Level nodes */}
+              <div className="sb-nodes">
+                {ch.levels.map((lv, li) => {
+                  const id = lv.levelNumber;
+                  const isCompleted = id < highestLevelUnlocked;
+                  const isCurrent   = id === highestLevelUnlocked;
+                  const isLocked    = id > highestLevelUnlocked;
+                  const hasConfig   = !!LEVELS[id];
+                  const isPlayable  = !isLocked && hasConfig;
+                  const stars = parseInt(localStorage.getItem(`royal_rescue_stars_level_${id}`) || '0');
+                  const isHovered = hoveredLevel === id;
+
+                  let nodeBg: string;
+                  let nodeShadow: string;
+                  let nodeBorder: string;
+
+                  if (isCompleted) {
+                    nodeBg = theme.nodeDone;
+                    nodeShadow = `0 4px 12px ${theme.glow}, 0 2px 4px rgba(0,0,0,0.1)`;
+                    nodeBorder = `2px solid ${theme.nodeDoneBorder}`;
+                  } else if (isCurrent) {
+                    nodeBg = `radial-gradient(circle at 38% 32%, #ffffff, #fef3c7)`;
+                    nodeShadow = `0 0 0 3px ${theme.accent}, 0 0 20px ${theme.glow}, 0 4px 14px rgba(0,0,0,0.15)`;
+                    nodeBorder = `2px solid #fff`;
+                  } else {
+                    nodeBg = 'radial-gradient(circle at 38% 32%, rgba(255,255,255,0.6), rgba(210,205,195,0.5))';
+                    nodeShadow = 'none';
+                    nodeBorder = '1.5px solid rgba(180,170,155,0.3)';
+                  }
+
+                  // Node size — staggered slightly per position for organic feel
+                  const sizes = [44, 42, 46, 42, 44];
+                  const baseSize = isCurrent ? 54 : isCompleted ? sizes[li] : 36;
+
+                  return (
+                    <div key={id} className="sb-node-wrapper">
+                      {/* Connector dot between nodes */}
+                      {li > 0 && (
+                        <div
+                          className="sb-connector"
+                          style={{
+                            background: isCompleted || (isCurrent && li <= (highestLevelUnlocked - chapterFirstLevel))
+                              ? theme.accent
+                              : 'rgba(180,165,140,0.25)',
+                          }}
+                        />
+                      )}
+
+                      <div className="sb-node-row">
+                        {/* Star badge left */}
+                        {isCompleted && stars > 0 && (
+                          <div className="sb-stars">
+                            {'★'.repeat(stars)}{'☆'.repeat(3 - stars)}
+                          </div>
+                        )}
+
+                        {/* The node */}
+                        <div
+                          className={`sb-node ${isCurrent ? 'sb-node-current' : ''} ${isLocked ? 'sb-node-locked' : ''}`}
+                          style={{
+                            width: baseSize,
+                            height: baseSize,
+                            background: nodeBg,
+                            boxShadow: nodeShadow,
+                            border: nodeBorder,
+                            opacity: isLocked ? 0.38 : 1,
+                            cursor: isPlayable ? 'pointer' : isLocked ? 'not-allowed' : 'default',
+                            transform: isHovered && isPlayable ? 'scale(1.15)' : 'scale(1)',
+                          }}
+                          onClick={() => isPlayable && onSelectLevel(id)}
+                          onMouseEnter={() => setHoveredLevel(id)}
+                          onMouseLeave={() => setHoveredLevel(null)}
+                          role={isPlayable ? 'button' : undefined}
+                          tabIndex={isPlayable ? 0 : undefined}
+                          onKeyDown={e => e.key === 'Enter' && isPlayable && onSelectLevel(id)}
+                        >
+                          {/* Crown above current */}
+                          {isCurrent && (
+                            <div className="sb-crown">
+                              <svg viewBox="0 0 24 18" width="28" height="21">
+                                <defs>
+                                  <linearGradient id={`cg-${id}`} x1="0%" y1="0%" x2="0%" y2="100%">
+                                    <stop offset="0%" stopColor="#ffe082" />
+                                    <stop offset="100%" stopColor="#b78600" />
+                                  </linearGradient>
+                                </defs>
+                                <path d="M1,16 L23,16 L21,5 L17,10 L12,3 L7,10 L3,5 Z" fill={`url(#cg-${id})`} stroke="#9c6d00" strokeWidth="0.8" />
+                                <circle cx="12" cy="3" r="1.2" fill="#ffe082" />
+                                <circle cx="3"  cy="5" r="1.2" fill="#ffe082" />
+                                <circle cx="21" cy="5" r="1.2" fill="#ffe082" />
+                              </svg>
+                            </div>
+                          )}
+
+                          {/* Level number */}
+                          <span
+                            className="sb-node-num"
+                            style={{
+                              color: isLocked ? 'rgba(120,110,95,0.4)'
+                                : isCompleted ? 'rgba(255,255,255,0.95)'
+                                : isCurrent ? theme.textDark
+                                : 'rgba(120,110,95,0.4)',
+                              fontSize: isCurrent ? 16 : 13,
+                            }}
+                          >
+                            {isLocked ? '🔒' : id}
+                          </span>
+                        </div>
+
+                        {/* Tooltip on hover */}
+                        {!isLocked && isHovered && (
+                          <div className="sb-tooltip" style={{ borderColor: theme.colBorder }}>
+                            <div className="sb-tooltip-title" style={{ color: theme.textDark }}>{lv.title}</div>
+                            <div className="sb-tooltip-detail" style={{ color: theme.accent }}>
+                              {isCurrent && isPlayable ? '▶ Tap to play'
+                                : isCurrent ? 'Coming soon'
+                                : isCompleted ? `✓ Complete${stars > 0 ? ' · ' + '★'.repeat(stars) : ''}`
+                                : ''}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Toggleable Glassmorphic Help Drawer */}
+      {/* ── Guide modal ───────────────────────────── */}
       {isGuideOpen && (
         <div className="guide-modal-overlay" onClick={() => setIsGuideOpen(false)}>
           <div className="guide-modal-card animate-bounce-pop" onClick={e => e.stopPropagation()}>
             <div className="guide-modal-header">
-              <h2>Dungeon Survival Guide</h2>
+              <h2>Survival Guide</h2>
               <button className="close-guide-btn" onClick={() => setIsGuideOpen(false)}>×</button>
             </div>
             <div className="guide-modal-body">
               <ul>
-                <li>
-                  <span className="guide-icon">⭐</span>
-                  <div>
-                    <strong>Match 4:</strong> Forms <strong>Row/Col Blasters</strong>. Clears entire lines to drain 10% water.
-                  </div>
-                </li>
-                <li>
-                  <span className="guide-icon">💣</span>
-                  <div>
-                    <strong>Match 5 (T/L):</strong> Forms <strong>Dungeon Bombs</strong>. Explodes a 3x3 area to drain 15% water.
-                  </div>
-                </li>
-                <li>
-                  <span className="guide-icon">⚡</span>
-                  <div>
-                    <strong>Match 5 (Line):</strong> Forms <strong>Lightning Gems</strong>. Swapping zaps all matching color gems.
-                  </div>
-                </li>
-                <li>
-                  <span className="guide-icon">🧊</span>
-                  <div>
-                    <strong>Frozen Gems:</strong> Wrapped in ice. Crack them by matching directly or adjacent to free them.
-                  </div>
-                </li>
-                <li>
-                  <span className="guide-icon">🪨</span>
-                  <div>
-                    <strong>Iron Boulders:</strong> Heavy tiles that sink down. Destroy them by matching adjacent candies.
-                  </div>
-                </li>
-                <li>
-                  <span className="guide-icon">🌿</span>
-                  <div>
-                    <strong>Spreading Algae:</strong> Spreads to adjacent tiles if you end a turn without clearing any algae blocks.
-                  </div>
-                </li>
-                <li>
-                  <span className="guide-icon">🌊</span>
-                  <div>
-                    <strong>Buoyancy Line:</strong> Submerged wet zone floats tiles <strong>UP</strong>; dry zone falls <strong>DOWN</strong>.
-                  </div>
-                </li>
+                <li><span className="guide-icon">⭐</span><div><strong>Match 4:</strong> Forms <strong>Row/Col Blasters</strong>. Clears entire lines.</div></li>
+                <li><span className="guide-icon">💣</span><div><strong>Match 5 (T/L):</strong> Forms <strong>Dungeon Bombs</strong>. Explodes 3×3.</div></li>
+                <li><span className="guide-icon">⚡</span><div><strong>Match 5 (Line):</strong> Forms <strong>Lightning Gems</strong>. Zaps all matching colours.</div></li>
+                <li><span className="guide-icon">🧊</span><div><strong>Frozen Gems:</strong> Match adjacent to crack ice.</div></li>
+                <li><span className="guide-icon">🪨</span><div><strong>Iron Boulders:</strong> Sink downward — destroy by matching adjacent.</div></li>
+                <li><span className="guide-icon">🌿</span><div><strong>Spreading Algae:</strong> Spreads each turn without clearing it.</div></li>
+                <li><span className="guide-icon">🌊</span><div><strong>Buoyancy Line:</strong> Wet zone floats <strong>UP</strong>; dry zone falls <strong>DOWN</strong>.</div></li>
               </ul>
             </div>
           </div>

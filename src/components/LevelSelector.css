@@ -1,491 +1,341 @@
-/* Premium Saga Map Level Selector Styles */
+/* ═══════════════════════════════════════════════════════
+   Storybook Chapter Columns — LevelSelector
+   ═══════════════════════════════════════════════════════ */
 
-.level-selector-screen {
+/* Full screen wrapper — castle bg fills everything */
+.sb-screen {
   width: 100%;
   height: 100%;
-  position: relative;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   box-sizing: border-box;
+  background-image:
+    linear-gradient(135deg, rgba(255, 252, 240, 0.82) 0%, rgba(255, 242, 200, 0.76) 100%),
+    url('/castle_bg.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: local;
 }
 
-/* Floating Top Title Bar */
-.map-floating-header {
-  position: absolute;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
-  text-align: center;
-  pointer-events: none;
-  width: 90%;
-  max-width: 600px;
-}
-
-.map-title-large {
-  font-family: 'Georgia', serif;
-  font-size: 26px;
-  font-weight: 900;
-  letter-spacing: 4px;
-  color: #8b6914; /* Dark gold text */
-  margin: 0;
-  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.95), 0 0 10px rgba(197, 160, 89, 0.2);
-}
-
-.map-subtitle-large {
-  font-size: 11px;
-  font-weight: 700;
-  color: #475569;
-  margin: 4px 0 0 0;
-  text-shadow: 0 1px 2px rgba(255,255,255,0.9);
-}
-
-/* Horizontally scrolling map container viewport */
-.map-scroll-container {
-  width: 100%;
-  height: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
+/* ── Light parchment header ──────────────────────── */
+.sb-header {
+  height: 52px;
+  background: rgba(255, 252, 238, 0.92);
+  border-bottom: 1.5px solid rgba(180, 140, 40, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Custom scrollbar for premium touch */
-.map-scroll-container::-webkit-scrollbar {
-  height: 8px;
-}
-.map-scroll-container::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.04);
-  border-radius: 4px;
-}
-.map-scroll-container::-webkit-scrollbar-thumb {
-  background: rgba(197, 160, 89, 0.4);
-  border-radius: 4px;
-}
-.map-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(197, 160, 89, 0.7);
-}
-
-/* Scroll Track width stretching horizontally */
-.map-scroll-track {
-  width: 1720px; /* Exact width covering 8 levels map road */
-  height: 480px;
-  position: relative;
-  display: flex;
-  margin-top: 40px; /* Offset for header */
-}
-
-/* Chapter theme background regions */
-.map-region {
-  position: absolute;
-  top: 0;
-  height: 100%;
+  justify-content: space-between;
+  padding: 0 20px;
   box-sizing: border-box;
+  flex-shrink: 0;
+  box-shadow: 0 2px 12px rgba(160, 120, 30, 0.08);
+}
+
+.sb-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sb-header-emoji {
+  font-size: 20px;
+}
+
+.sb-header-info {
   display: flex;
   flex-direction: column;
-  pointer-events: none;
+  gap: 1px;
 }
 
-.map-region.region-guardhouse {
-  left: 0;
-  width: 450px;
-  background: linear-gradient(135deg, rgba(239, 108, 0, 0.07) 0%, rgba(216, 67, 21, 0.03) 100%);
-}
-
-.map-region.region-vaults {
-  left: 450px;
-  width: 600px;
-  background: linear-gradient(135deg, rgba(0, 150, 136, 0.07) 0%, rgba(0, 121, 107, 0.03) 100%);
-}
-
-.map-region.region-crypts {
-  left: 1050px;
-  width: 670px;
-  background: linear-gradient(135deg, rgba(0, 188, 212, 0.07) 0%, rgba(2, 136, 209, 0.03) 100%);
-}
-
-/* 1. PARALLAX LAYER: BACKGROUND (Slowest scroll speed) */
-.map-parallax-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-  will-change: transform;
-}
-
-.bg-decor {
-  position: absolute;
-  opacity: 0.15;
-  filter: grayscale(40%) blur(0.5px);
-  user-select: none;
-  pointer-events: none;
-}
-
-.bg-torch-post-1 { left: 120px; top: 80px; font-size: 54px; }
-.bg-shield { left: 340px; top: 310px; font-size: 48px; }
-.bg-key { left: 620px; top: 70px; font-size: 50px; }
-.bg-torch-post-2 { left: 880px; top: 320px; font-size: 46px; }
-.bg-gem { left: 1160px; top: 80px; font-size: 52px; }
-.bg-crown-decor { left: 1420px; top: 290px; font-size: 58px; }
-
-/* 2. PARALLAX LAYER: FOREGROUND (Fastest scroll speed in opposite direction) */
-.map-parallax-fg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 15; /* Sits in front of nodes layer */
-  will-change: transform;
-}
-
-.fg-bubble {
-  position: absolute;
-  font-size: 32px;
-  opacity: 0.22;
-  filter: blur(0.5px);
-  user-select: none;
-  pointer-events: none;
-}
-
-.fb1 { left: 180px; top: 120px; }
-.fb2 { left: 550px; top: 330px; }
-.fb3 { left: 950px; top: 90px; }
-.fb4 { left: 1350px; top: 340px; }
-
-/* 3. FROSTED GLASS DIVIDER PANELS (Chapter Boundaries) */
-.glass-divider-panel {
-  position: absolute;
-  top: 0;
-  width: 14px;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.16);
-  border-left: 2px solid rgba(255, 255, 255, 0.4);
-  border-right: 2px solid rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  z-index: 5;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
-  pointer-events: none;
-}
-
-.divider-label {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(-90deg);
-  font-size: 8px;
-  font-weight: 900;
-  color: rgba(139, 105, 20, 0.6);
-  white-space: nowrap;
-  letter-spacing: 2px;
-  text-shadow: 0 1px 1px rgba(255,255,255,0.8);
-}
-
-/* Spline road SVG overlay */
-.saga-map-road-svg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 1700px;
-  height: 460px;
-  z-index: 1;
-  pointer-events: none;
-  overflow: visible;
-}
-
-/* Winding SVG map road line crawling */
-.crawling-road-line {
-  animation: road-dash-crawl-key 1s linear infinite;
-}
-
-@keyframes road-dash-crawl-key {
-  to { stroke-dashoffset: -18; }
-}
-
-/* Node layouts */
-.level-node {
-  position: absolute;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: 3.5px solid rgba(255, 255, 255, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
-  z-index: 10;
-  transform: scale(1);
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-}
-
-.level-node.unlocked {
-  background: linear-gradient(135deg, #ff9f43 0%, #ff6b6b 100%);
-  border-color: #ffeb60;
-  color: #ffffff;
-}
-
-.level-node.unlocked:hover {
-  transform: scale(1.22);
-  box-shadow: 0 0 20px rgba(255, 107, 107, 0.65);
-  z-index: 15;
-}
-
-/* Current unlocked pulse */
-.level-node.active-pulse {
-  animation: active-node-pulse-key 1.5s infinite alternate;
-}
-
-@keyframes active-node-pulse-key {
-  0% { box-shadow: 0 0 10px #ff6b6b, 0 6px 15px rgba(0, 0, 0, 0.15); }
-  100% { box-shadow: 0 0 24px #ff6b6b, 0 0 0 6px rgba(255, 107, 107, 0.3); }
-}
-
-.level-node.completed {
-  background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-  border-color: #75f088;
-  color: #fff;
-}
-
-.level-node.locked {
-  background-color: rgba(226, 232, 240, 0.85);
-  border-color: rgba(148, 163, 184, 0.4);
-  color: #94a3b8;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.node-number {
-  font-weight: 900;
-  font-size: 18px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-shadow: 0 1.5px 3px rgba(0,0,0,0.2);
-}
-
-/* 4. ACTIVE NODE: 3D FLOATING GOLD CROWN MARKER */
-.active-crown-marker {
-  position: absolute;
-  top: -30px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 32px;
-  height: 24px;
-  z-index: 15;
-  filter: drop-shadow(0 3px 5px rgba(156, 109, 0, 0.5));
-  animation: crown-float-key 1.1s ease-in-out infinite alternate;
-  pointer-events: none;
-}
-
-.crown-svg {
-  width: 100%;
-  height: 100%;
-}
-
-@keyframes crown-float-key {
-  0% { transform: translateX(-50%) translateY(0); }
-  100% { transform: translateX(-50%) translateY(-6px) rotate(1.5deg); }
-}
-
-/* 5. LOCKED NODES: INTERSECTING METALLIC CHAINS & PADLOCKS */
-.node-chains-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  z-index: 8;
-  overflow: visible;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  pointer-events: none;
-}
-
-.padlock-badge {
-  font-size: 17px;
-  z-index: 10;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
-}
-
-.chain-arc {
-  position: absolute;
-  border: 3.5px solid #64748b;
-  border-radius: 50%;
-  opacity: 0.82;
-  filter: drop-shadow(0 1.5px 3px rgba(0, 0, 0, 0.45));
-}
-
-.h-chain {
-  width: 100%;
-  height: 16px;
-  border-left: none;
-  border-right: none;
-  transform: rotate(-15deg);
-}
-
-.v-chain {
-  width: 16px;
-  height: 100%;
-  border-top: none;
-  border-bottom: none;
-  transform: rotate(-15deg);
-}
-
-/* Floating Gold stars above nodes */
-.node-stars {
-  position: absolute;
-  top: -14px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 1.5px;
-  z-index: 12;
-  background: rgba(15, 23, 42, 0.8);
-  padding: 1.5px 4.5px;
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-}
-
-.star-gold {
-  color: #ffd700;
-  font-size: 10px;
-  text-shadow: 0 0 3px #ffb300;
-  animation: star-glow-key 1.2s infinite alternate;
-}
-
-@keyframes star-glow-key {
-  0% { transform: scale(0.9); }
-  100% { transform: scale(1.15); }
-}
-
-/* Hover tooltips */
-.node-tooltip {
-  position: absolute;
-  width: 125px;
-  background-color: rgba(255, 255, 255, 0.96);
-  border: 1.5px solid #c5a059;
-  border-radius: 8px;
-  padding: 6px 8px;
-  box-shadow: 0 6px 18px rgba(139, 105, 20, 0.15);
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  transform: translateY(-50%) scale(0.85);
-  top: 50%;
-  z-index: 20;
-  text-align: left;
-}
-
-/* Tooltip dynamic alignment depending on node coordinates */
-.node-1 .node-tooltip, 
-.node-3 .node-tooltip, 
-.node-5 .node-tooltip, 
-.node-7 .node-tooltip {
-  left: 65px;
-}
-
-.node-2 .node-tooltip, 
-.node-4 .node-tooltip, 
-.node-6 .node-tooltip {
-  right: 65px;
-  left: auto;
-}
-
-.node-8 .node-tooltip {
-  left: 65px;
-}
-
-.level-node.unlocked:hover .node-tooltip {
-  opacity: 1;
-  transform: translateY(-50%) scale(1);
-}
-
-.tooltip-name {
-  font-size: 11px;
-  font-weight: 900;
-  color: #0f172a;
-  line-height: 1.2;
-}
-
-.tooltip-details {
-  font-size: 9px;
+.sb-header-chapter {
+  font-family: 'Georgia', serif;
+  font-size: 13px;
   font-weight: 700;
-  color: #8b6914;
-  margin-top: 1px;
+  color: #5c3d0a;
+  letter-spacing: 0.5px;
 }
 
-.badge {
-  display: inline-block;
-  font-size: 7px;
-  font-weight: 800;
-  text-transform: uppercase;
-  padding: 1px 3.5px;
-  border-radius: 3px;
-  margin-top: 4px;
-  margin-right: 3.5px;
-  color: white;
+.sb-header-sub {
+  font-size: 10px;
+  color: #a07830;
+  letter-spacing: 1px;
 }
 
-.algae-badge { background-color: #2ecc71; }
-.valve-badge { background-color: #3498db; }
-.ice-badge { background-color: #00b4d8; }
-.boulder-badge { background-color: #64748b; }
-.boss-badge { 
-  background-color: #e11d48;
-  animation: boss-pulse-badge 1s infinite alternate;
+.sb-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-/* Bottom Controls */
-.map-bottom-controls {
-  position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 20;
-}
-
-.map-control-btn {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 2px solid #c5a059;
-  border-radius: 30px;
-  padding: 10px 20px;
-  font-family: inherit;
+.sb-progress {
   font-size: 12px;
-  font-weight: 800;
-  color: #8b6914;
+  font-weight: 700;
+  color: #8a6020;
+  letter-spacing: 1px;
+}
+
+.sb-btn-outline {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1.5px solid rgba(180, 140, 40, 0.35);
+  color: #8a6020;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 20px;
   cursor: pointer;
-  box-shadow: 0 4px 15px rgba(139, 105, 20, 0.15);
   transition: all 0.2s ease;
 }
 
-.map-control-btn:hover {
-  transform: scale(1.05);
-  background: #ffffff;
-  box-shadow: 0 6px 20px rgba(139, 105, 20, 0.25);
+.sb-btn-outline:hover {
+  background: #fff;
+  border-color: rgba(180, 140, 40, 0.6);
+  color: #5c3d0a;
 }
 
-/* Survival Guide Modal overlay */
+.sb-btn-reset {
+  color: #9a3020;
+  border-color: rgba(180, 60, 40, 0.3);
+}
+
+.sb-btn-reset:hover {
+  border-color: rgba(180, 60, 40, 0.6);
+  color: #7a2010;
+}
+
+/* ── 6 Chapter columns ───────────────────────────── */
+.sb-columns {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0;
+  min-height: 0;
+  overflow: visible;
+}
+
+.sb-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 8px 12px;
+  box-sizing: border-box;
+  background: var(--col-bg, rgba(255,248,220,0.45));
+  border-right: 1px dashed rgba(180, 150, 80, 0.2);
+  position: relative;
+  transition: background 0.3s ease;
+  overflow: visible;
+}
+
+.sb-col:last-child {
+  border-right: none;
+}
+
+.sb-col.col-locked {
+  background: rgba(240, 236, 225, 0.3);
+}
+
+.sb-col.col-current {
+  background: var(--col-bg, rgba(255,248,220,0.6));
+  box-shadow: inset 0 0 0 1.5px var(--col-border, rgba(180,140,40,0.2));
+}
+
+/* Subtle inner glow for current chapter column */
+.sb-col.col-current::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 30%, var(--col-glow, rgba(200,160,40,0.12)) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* ── Chapter header card ─────────────────────────── */
+.sb-chap-header {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(180,150,80,0.2);
+  padding: 10px 8px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 14px;
+  text-align: center;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.sb-chap-emoji {
+  font-size: 22px;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.sb-chap-roman {
+  font-family: 'Georgia', serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.sb-chap-title {
+  font-family: 'Georgia', serif;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.3px;
+}
+
+.sb-chap-sub {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  opacity: 0.75;
+  line-height: 1.2;
+}
+
+.sb-chap-complete-badge {
+  margin-top: 4px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid;
+}
+
+/* ── Nodes ───────────────────────────────────────── */
+.sb-nodes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+  width: 100%;
+  justify-content: space-evenly;
+}
+
+.sb-node-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* Thin connector line between nodes */
+.sb-connector {
+  width: 2px;
+  height: 12px;
+  border-radius: 1px;
+  transition: background 0.3s ease;
+}
+
+.sb-node-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sb-node {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: transform 0.18s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.18s ease;
+  flex-shrink: 0;
+}
+
+.sb-node-current {
+  animation: sb-pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes sb-pulse {
+  0%   { transform: scale(1); }
+  100% { transform: scale(1.06); }
+}
+
+.sb-node-locked {
+  filter: grayscale(0.3);
+}
+
+/* Crown above current node */
+.sb-crown {
+  position: absolute;
+  top: -26px;
+  left: 50%;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 2px 4px rgba(156,109,0,0.4));
+  animation: sb-crown-float 1.2s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes sb-crown-float {
+  0%   { transform: translateX(-50%) translateY(0); }
+  100% { transform: translateX(-50%) translateY(-5px); }
+}
+
+.sb-node-num {
+  font-weight: 800;
+  line-height: 1;
+  user-select: none;
+  position: relative;
+  z-index: 1;
+}
+
+/* Stars */
+.sb-stars {
+  position: absolute;
+  left: -36px;
+  font-size: 9px;
+  color: #f59e0b;
+  letter-spacing: -1px;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* Tooltip */
+.sb-tooltip {
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 252, 240, 0.97);
+  border: 1.5px solid rgba(180,140,40,0.3);
+  border-radius: 8px;
+  padding: 6px 10px;
+  min-width: 120px;
+  z-index: 500;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.sb-tooltip-title {
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 2px;
+  line-height: 1.3;
+  white-space: normal;
+  max-width: 140px;
+}
+
+.sb-tooltip-detail {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* ── Guide modal (reused) ────────────────────────── */
 .guide-modal-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(15, 23, 42, 0.45);
+  inset: 0;
+  background-color: rgba(30, 20, 5, 0.4);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   z-index: 1000;
@@ -500,70 +350,70 @@
   width: 100%;
   max-width: 420px;
   background: linear-gradient(135deg, #fffcf5 0%, #fff7e6 100%);
-  border: 3.5px solid #d4af37;
+  border: 3px solid #d4af37;
   border-radius: 20px;
-  box-shadow: 0 20px 50px rgba(184, 134, 11, 0.28);
+  box-shadow: 0 20px 50px rgba(184, 134, 11, 0.25);
   padding: 22px;
   box-sizing: border-box;
-  text-align: left;
 }
 
 .guide-modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 2px solid rgba(197, 160, 89, 0.25);
+  border-bottom: 1.5px solid rgba(197, 160, 89, 0.25);
   padding-bottom: 10px;
-  margin-bottom: 15px;
+  margin-bottom: 14px;
 }
 
 .guide-modal-header h2 {
   font-family: 'Georgia', serif;
   font-size: 18px;
-  font-weight: 900;
-  color: #8b6914;
+  color: #7a5010;
   margin: 0;
+  letter-spacing: 1px;
 }
 
 .close-guide-btn {
   background: none;
   border: none;
-  font-size: 26px;
-  font-weight: 300;
-  color: #94a3b8;
+  font-size: 22px;
+  color: #8a6020;
   cursor: pointer;
   line-height: 1;
-}
-.close-guide-btn:hover {
-  color: #475569;
+  padding: 0 4px;
 }
 
 .guide-modal-body ul {
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 300px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .guide-modal-body li {
   display: flex;
+  gap: 10px;
   align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 14px;
-  font-size: 11.5px;
-  color: #475569;
-  line-height: 1.45;
+  font-size: 13px;
+  color: #3d2c0a;
+  line-height: 1.5;
 }
 
 .guide-icon {
   font-size: 16px;
-  background: rgba(197, 160, 89, 0.15);
-  width: 28px;
-  height: 28px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 8px;
   flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Bounce pop animation */
+.animate-bounce-pop {
+  animation: bounce-pop-key 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes bounce-pop-key {
+  0%   { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1);   opacity: 1; }
 }

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import type { GridState, TileType } from '../services/boardLogic';
+import type { AmbientTheme } from '../services/storyData';
 import './GameBoard.css';
 
 interface FiredPowerUp {
@@ -19,7 +20,84 @@ interface GameBoardProps {
   brokenTiles: { id: string; r: number; c: number; type: TileType }[];
   firedPowerUps: FiredPowerUp[];
   firedValveDrain: string[];
+  ambientTheme?: AmbientTheme;
 }
+
+// Per-chapter gem colour palettes (5 gems: ruby, sapphire, emerald, amethyst + accent)
+const THEME_GEMS: Record<AmbientTheme, {
+  ruby: [string, string];
+  sapphire: [string, string];
+  emerald: [string, string];
+  amethyst: [string, string];
+  boardBg: string;
+  boardBorder: string;
+  cellBg: string;
+  shardRuby: string;
+  shardSapphire: string;
+  shardEmerald: string;
+  shardAmethyst: string;
+}> = {
+  warm: {
+    ruby:     ['#f5a020', '#c05808'],  // amber → burnt orange
+    sapphire: ['#e86020', '#a03010'],  // terracotta → deep red
+    emerald:  ['#f0c840', '#b08010'],  // gold → dark gold
+    amethyst: ['#e07820', '#803010'],  // amber-red → mahogany
+    boardBg:    'rgba(255, 248, 235, 0.72)',
+    boardBorder: 'rgba(200, 140, 40, 0.35)',
+    cellBg:     'rgba(255, 235, 190, 0.35)',
+    shardRuby: '#f5a020', shardSapphire: '#e86020', shardEmerald: '#f0c840', shardAmethyst: '#e07820',
+  },
+  rose: {
+    ruby:     ['#f080b0', '#c02060'],  // blush → deep rose
+    sapphire: ['#e04080', '#901040'],  // hot pink → crimson
+    emerald:  ['#f8a0c8', '#d04080'],  // light pink → magenta
+    amethyst: ['#c03060', '#800030'],  // rose → dark burgundy
+    boardBg:    'rgba(255, 245, 250, 0.72)',
+    boardBorder: 'rgba(200, 80, 120, 0.3)',
+    cellBg:     'rgba(255, 220, 235, 0.3)',
+    shardRuby: '#f080b0', shardSapphire: '#e04080', shardEmerald: '#f8a0c8', shardAmethyst: '#c03060',
+  },
+  cold: {
+    ruby:     ['#60c8f8', '#0860b0'],  // ice blue → deep blue
+    sapphire: ['#40a8e8', '#043880'],  // sky → navy
+    emerald:  ['#a0e0f8', '#2080c0'],  // pale ice → cerulean
+    amethyst: ['#80c0f0', '#1050a0'],  // powder blue → cobalt
+    boardBg:    'rgba(240, 250, 255, 0.75)',
+    boardBorder: 'rgba(40, 140, 210, 0.3)',
+    cellBg:     'rgba(210, 235, 255, 0.3)',
+    shardRuby: '#60c8f8', shardSapphire: '#40a8e8', shardEmerald: '#a0e0f8', shardAmethyst: '#80c0f0',
+  },
+  dark: {
+    ruby:     ['#c090f8', '#6020c0'],  // lavender → deep purple
+    sapphire: ['#9060e0', '#400890'],  // violet → indigo
+    emerald:  ['#e0b0f8', '#8040d0'],  // pale violet → purple
+    amethyst: ['#a070e8', '#501080'],  // amethyst → midnight
+    boardBg:    'rgba(248, 244, 255, 0.72)',
+    boardBorder: 'rgba(140, 80, 220, 0.3)',
+    cellBg:     'rgba(230, 210, 255, 0.3)',
+    shardRuby: '#c090f8', shardSapphire: '#9060e0', shardEmerald: '#e0b0f8', shardAmethyst: '#a070e8',
+  },
+  battle: {
+    ruby:     ['#f87050', '#c01810'],  // flame → dark crimson
+    sapphire: ['#e84030', '#901008'],  // red-orange → blood red
+    emerald:  ['#fca080', '#d03010'],  // light flame → deep red
+    amethyst: ['#d03020', '#800808'],  // crimson → dark red
+    boardBg:    'rgba(255, 245, 242, 0.72)',
+    boardBorder: 'rgba(200, 50, 30, 0.3)',
+    cellBg:     'rgba(255, 220, 210, 0.3)',
+    shardRuby: '#f87050', shardSapphire: '#e84030', shardEmerald: '#fca080', shardAmethyst: '#d03020',
+  },
+  ethereal: {
+    ruby:     ['#50d8c8', '#088888'],  // teal → deep teal
+    sapphire: ['#20b8c0', '#045868'],  // cyan → dark teal
+    emerald:  ['#90e8e0', '#18a0a8'],  // pale cyan → teal
+    amethyst: ['#40c8c0', '#066878'],  // seafoam → ocean
+    boardBg:    'rgba(240, 254, 252, 0.75)',
+    boardBorder: 'rgba(20, 170, 170, 0.3)',
+    cellBg:     'rgba(200, 245, 245, 0.3)',
+    shardRuby: '#50d8c8', shardSapphire: '#20b8c0', shardEmerald: '#90e8e0', shardAmethyst: '#40c8c0',
+  },
+};
 
 interface Shard {
   id: string;
@@ -41,8 +119,10 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   onSwapTiles,
   brokenTiles,
   firedPowerUps,
-  firedValveDrain
+  firedValveDrain,
+  ambientTheme = 'warm',
 }) => {
+  const t = THEME_GEMS[ambientTheme];
   const [swipeStart, setSwipeStart] = useState<{ r: number; c: number; x: number; y: number } | null>(null);
   const [shards, setShards] = useState<Shard[]>([]);
   const boardRef = useRef<HTMLDivElement>(null);
@@ -55,13 +135,13 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     const processedIds = processedBrokenIdsRef.current;
     const newShards: Shard[] = [];
     const colorsMap: Record<TileType, string> = {
-      ruby: '#ff2d55',
+      ruby:     '#ff2d55',
       sapphire: '#007aff',
-      emerald: '#4cd964',
+      emerald:  '#4cd964',
       amethyst: '#5856d6',
-      coin: '#ffeb60',
-      valve: '#8a9baf',
-      boulder: '#475569'
+      coin:     '#ffeb60',
+      valve:    '#8a9baf',
+      boulder:  '#475569'
     };
 
     brokenTiles.forEach(tile => {
@@ -381,15 +461,20 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   };
 
   return (
-    <div 
-      className="board-container" 
+    <div
+      className={`board-container theme-${ambientTheme}`}
       ref={boardRef}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      style={{
+        '--board-bg': t.boardBg,
+        '--board-border': t.boardBorder,
+        '--cell-bg': t.cellBg,
+      } as React.CSSProperties}
     >
-      {/* SVG Definitions for tile gradients */}
+      {/* SVG Definitions for tile gradients — swapped per theme */}
       <svg className="svg-defs-hidden">
         <defs>
           <linearGradient id="ruby-grad" x1="0%" y1="0%" x2="100%" y2="100%">
