@@ -220,3 +220,95 @@
   color: rgba(255, 255, 255, 0.7);
   border-color: rgba(255, 255, 255, 0.25);
 }
+
+/* ── Seal-break particle burst (chapter finale) ── */
+.seal-burst-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.seal-burst-particle {
+  position: absolute;
+  width: var(--size, 8px);
+  height: var(--size, 8px);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff8c0, #f0c020);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: seal-particle-fly 1.4s cubic-bezier(0.2, 0.8, 0.4, 1) forwards;
+}
+
+@keyframes seal-particle-fly {
+  0%   {
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateY(0px) scale(1);
+    opacity: 1;
+  }
+  70%  {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateY(-140px) scale(0.2);
+    opacity: 0;
+  }
+}
+
+.seal-burst-ring {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid rgba(240, 200, 50, 0.8);
+  animation: seal-ring-expand 1.2s ease-out forwards;
+}
+
+.seal-burst-ring-2 {
+  animation-delay: 0.25s;
+  border-color: rgba(255, 240, 130, 0.55);
+}
+
+@keyframes seal-ring-expand {
+  0%   { transform: scale(0.2); opacity: 1; }
+  100% { transform: scale(4);   opacity: 0; }
+}
+
+/* Theme-tint the particles per chapter */
+.closure-theme-rose .seal-burst-particle {
+  background: radial-gradient(circle at 35% 35%, #fff0f5, #e0507a);
+}
+.closure-theme-rose .seal-burst-ring {
+  border-color: rgba(230, 100, 140, 0.8);
+}
+
+.closure-theme-cold .seal-burst-particle {
+  background: radial-gradient(circle at 35% 35%, #e8f8ff, #40a8e8);
+}
+.closure-theme-cold .seal-burst-ring {
+  border-color: rgba(80, 180, 240, 0.8);
+}
+
+.closure-theme-dark .seal-burst-particle {
+  background: radial-gradient(circle at 35% 35%, #f0e8ff, #8040d0);
+}
+.closure-theme-dark .seal-burst-ring {
+  border-color: rgba(160, 100, 240, 0.8);
+}
+
+.closure-theme-battle .seal-burst-particle {
+  background: radial-gradient(circle at 35% 35%, #ffe0e0, #cc3030);
+}
+.closure-theme-battle .seal-burst-ring {
+  border-color: rgba(220, 70, 70, 0.8);
+}
+
+.closure-theme-ethereal .seal-burst-particle {
+  background: radial-gradient(circle at 35% 35%, #e0fff5, #20b080);
+}
+.closure-theme-ethereal .seal-burst-ring {
+  border-color: rgba(40, 190, 145, 0.8);
+}

@@ -38,6 +38,9 @@ export function useGameState() {
   const [firedPowerUps, setFiredPowerUps] = useState<{ id: string; r: number; c: number; type: 'blast_row' | 'blast_col' | 'bomb' | 'lightning' }[]>([]);
   const [firedValveDrain, setFiredValveDrain] = useState<string[]>([]);
 
+  // All-algae-cleared bonus (L8 — The Vow Stone)
+  const algaeBonusClaimedRef = useRef(false);
+
   // Keep references to prevent closure stale state in async intervals
   const gridRef = useRef<GridState>([]);
   gridRef.current = grid;
@@ -79,8 +82,27 @@ export function useGameState() {
     return () => clearInterval(interval);
   }, [gameState, levelConfig]);
 
+  // ── L8 all-algae-cleared bonus (+5 coins) ────────────────────
+  useEffect(() => {
+    if (levelConfig.id !== 8 || algaeBonusClaimedRef.current) return;
+    if (gameState !== 'playing') return;
+    if (!levelConfig.hasAlgae) return;
+    const hasAnyAlgae = grid.some(row => row.some(cell => cell?.algae));
+    if (!hasAnyAlgae && grid.length > 0) {
+      algaeBonusClaimedRef.current = true;
+      setCoinsCollected(prev => prev + 5);
+      // Emit a special floating bonus coin at board centre
+      const bonusId = `algae_bonus_${Date.now()}`;
+      setFloatingCoins(prev => [...prev, { id: bonusId, r: 3, c: 3, value: 5 }]);
+      setTimeout(() => {
+        setFloatingCoins(prev => prev.filter(fc => fc.id !== bonusId));
+      }, 1400);
+    }
+  }, [grid, gameState, levelConfig]);
+
   // Navigate to Level and Start It!
   const selectLevel = (levelId: number) => {
+    algaeBonusClaimedRef.current = false; // reset per level
     const config = LEVELS[levelId] || LEVELS[1];
     setCurrentLevelId(levelId);
     setLevelConfig(config);
@@ -335,7 +357,9 @@ export function useGameState() {
     }
 
     // Algae spreading check: spreads algae if none was cleared this turn
-    if (hasMatchedAnythingOnFirstPass && levelConfig.hasAlgae && !anyAlgaeClearedThisTurn) {
+    // Level 4 is the gentle intro to algae — spreading is disabled so players learn the mechanic first
+    const algaeCanSpread = levelConfig.hasAlgae && levelConfig.id !== 4;
+    if (hasMatchedAnythingOnFirstPass && algaeCanSpread && !anyAlgaeClearedThisTurn) {
       currentGrid = spreadAlgae(currentGrid);
       setGrid(currentGrid);
       await new Promise(res => setTimeout(res, 180));

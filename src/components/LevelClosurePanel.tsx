@@ -36,6 +36,7 @@ export const LevelClosurePanel: React.FC<LevelClosurePanelProps> = ({
   const [visibleLines, setVisibleLines] = useState(0);
   const [showStats, setShowStats] = useState(false);
   const [showActions, setShowActions] = useState(false);
+  const [showSealBurst, setShowSealBurst] = useState(false);
 
   useEffect(() => {
     if (!story) {
@@ -45,20 +46,48 @@ export const LevelClosurePanel: React.FC<LevelClosurePanelProps> = ({
       return;
     }
     const timers: ReturnType<typeof setTimeout>[] = [];
-    // Reveal each verse line with a delay
     [0, 1, 2, 3].forEach(i => {
       timers.push(setTimeout(() => setVisibleLines(i + 1), 400 + i * 500));
     });
-    // Prose sentence after last verse line
     timers.push(setTimeout(() => setShowStats(true), 400 + 4 * 500 + 200));
     timers.push(setTimeout(() => setShowActions(true), 400 + 4 * 500 + 700));
+    // Seal burst fires on chapter-end levels after a short delay
+    if (isChapterEnd) {
+      timers.push(setTimeout(() => setShowSealBurst(true), 300));
+      timers.push(setTimeout(() => setShowSealBurst(false), 1800));
+    }
     return () => timers.forEach(clearTimeout);
-  }, [story]);
+  }, [story, isChapterEnd]);
 
   const theme = chapter?.ambientTheme ?? 'warm';
 
+  // 16 burst particles radiating outward
+  const sealParticles = Array.from({ length: 16 }, (_, i) => ({
+    angle: (i / 16) * 360,
+    delay: i * 40,
+    size: 6 + (i % 3) * 3,
+  }));
+
   return (
     <div className={`closure-overlay closure-theme-${theme}`}>
+      {/* Seal-break particle burst — chapter finale only */}
+      {showSealBurst && (
+        <div className="seal-burst-container">
+          {sealParticles.map((p, i) => (
+            <div
+              key={i}
+              className="seal-burst-particle"
+              style={{
+                '--angle': `${p.angle}deg`,
+                '--size': `${p.size}px`,
+                animationDelay: `${p.delay}ms`,
+              } as React.CSSProperties}
+            />
+          ))}
+          <div className="seal-burst-ring" />
+          <div className="seal-burst-ring seal-burst-ring-2" />
+        </div>
+      )}
       <div className="closure-card">
 
         {/* Chapter badge */}

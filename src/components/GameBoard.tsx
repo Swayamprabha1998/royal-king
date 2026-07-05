@@ -21,6 +21,7 @@ interface GameBoardProps {
   firedPowerUps: FiredPowerUp[];
   firedValveDrain: string[];
   ambientTheme?: AmbientTheme;
+  levelId?: number;
 }
 
 // Per-chapter gem colour palettes (5 gems: ruby, sapphire, emerald, amethyst + accent)
@@ -121,12 +122,59 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   firedPowerUps,
   firedValveDrain,
   ambientTheme = 'warm',
+  levelId,
 }) => {
   const t = THEME_GEMS[ambientTheme];
   const [swipeStart, setSwipeStart] = useState<{ r: number; c: number; x: number; y: number } | null>(null);
   const [shards, setShards] = useState<Shard[]>([]);
   const boardRef = useRef<HTMLDivElement>(null);
   const processedBrokenIdsRef = useRef<Set<string>>(new Set());
+
+  // ── L2 waterline hint — one-time callout ──────────────────────
+  const hintKey = 'royal_rescue_waterline_hint_seen';
+  const [showWaterlineHint, setShowWaterlineHint] = useState<boolean>(
+    () => levelId === 2 && !localStorage.getItem(hintKey)
+  );
+  useEffect(() => {
+    if (!showWaterlineHint) return;
+    const t = setTimeout(() => {
+      setShowWaterlineHint(false);
+      localStorage.setItem(hintKey, '1');
+    }, 5000);
+    return () => clearTimeout(t);
+  }, [showWaterlineHint]);
+  const dismissHint = () => {
+    setShowWaterlineHint(false);
+    localStorage.setItem(hintKey, '1');
+  };
+
+  // ── L3 valve hint — contextual tooltip on first valve tile ───
+  const valveHintKey = 'royal_rescue_valve_hint_seen';
+  const [showValveHint, setShowValveHint] = useState<boolean>(
+    () => levelId === 3 && !localStorage.getItem(valveHintKey)
+  );
+  useEffect(() => {
+    if (!showValveHint) return;
+    const timer = setTimeout(() => {
+      setShowValveHint(false);
+      localStorage.setItem(valveHintKey, '1');
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [showValveHint]);
+  const dismissValveHint = () => {
+    setShowValveHint(false);
+    localStorage.setItem(valveHintKey, '1');
+  };
+
+  // Find first valve position in the grid
+  let firstValve: { r: number; c: number } | null = null;
+  if (showValveHint) {
+    outer: for (let r = 0; r < grid.length; r++) {
+      for (let c = 0; c < grid[r].length; c++) {
+        if (grid[r][c]?.type === 'valve') { firstValve = { r, c }; break outer; }
+      }
+    }
+  }
 
   // 1. Matched jewels breaking particles logic (fires on initial swaps & cascade matches)
   useEffect(() => {
@@ -302,6 +350,14 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             <polygon points="34,14 28,34 20,20" fill="rgba(0,0,0,0.12)" />
             <polygon points="28,34 12,34 20,20" fill="rgba(0,0,0,0.24)" />
             <polygon points="12,34 6,14 20,20" fill="rgba(0,0,0,0.06)" />
+            {/* Rose chapter: tiny petal highlight at top-right of gem */}
+            {ambientTheme === 'rose' && (
+              <>
+                <ellipse cx="29" cy="10" rx="3.5" ry="2.2" fill="rgba(255,200,220,0.82)" transform="rotate(-35,29,10)" />
+                <ellipse cx="32" cy="13" rx="3"   ry="1.8" fill="rgba(255,180,210,0.65)" transform="rotate(20,32,13)"  />
+                <ellipse cx="29" cy="7"  rx="2.5" ry="1.5" fill="rgba(255,220,235,0.55)" transform="rotate(-10,29,7)"  />
+              </>
+            )}
           </svg>
         );
       case 'sapphire':
@@ -416,6 +472,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       }
 
       if (targetR >= 0 && targetR < 8 && targetC >= 0 && targetC < 8) {
+        if (showWaterlineHint) dismissHint();
+        if (showValveHint) dismissValveHint();
         onSwapTiles(swipeStart.r, swipeStart.c, targetR, targetC);
       }
       setSwipeStart(null);
@@ -460,9 +518,12 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     setSwipeStart(null);
   };
 
+  // Reactive algae presence — drives green board border tint
+  const hasActiveAlgae = grid.some(row => row.some(cell => cell?.algae));
+
   return (
     <div
-      className={`board-container theme-${ambientTheme}`}
+      className={`board-container theme-${ambientTheme}${hasActiveAlgae ? ' board-has-algae' : ''}`}
       ref={boardRef}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -474,6 +535,66 @@ export const GameBoard: React.FC<GameBoardProps> = ({
         '--cell-bg': t.cellBg,
       } as React.CSSProperties}
     >
+      {/* L8 carved vow-stone heart — barely visible under algae, glows on reveal */}
+      {levelId === 8 && (
+        <div className={`vow-stone-heart${!hasActiveAlgae ? ' vow-heart-revealed' : ''}`} aria-hidden="true">
+          ♥
+        </div>
+      )}
+
+      {/* L5 mirror-gate glow — silver shimmer at board top */}
+      {levelId === 5 && (
+        <div className="mirror-gate-glow" aria-hidden="true">
+          <div className="mirror-gate-beam mirror-gate-beam--left"  />
+          <div className="mirror-gate-beam mirror-gate-beam--right" />
+        </div>
+      )}
+
+      {/* L7 ceremony aisle — faint gold runner down board centre */}
+      {levelId === 7 && (
+        <div className="ceremony-aisle-runner" aria-hidden="true" />
+      )}
+
+      {/* Rose petals floating UPWARD in the wet zone — Chapter 2 only */}
+      {ambientTheme === 'rose' && (
+        <div className="rose-petals-upward-overlay" aria-hidden="true">
+          {Array.from({ length: 8 }, (_, i) => (
+            <div
+              key={i}
+              className="rose-petal-up"
+              style={{
+                '--petal-delay':   `${-(i * 0.7)}s`,
+                '--petal-x-start': `${(i * 23 + 11) % 88}%`,
+                '--petal-drift-x': `${(i % 2 === 0 ? -1 : 1) * (8 + (i % 3) * 6)}px`,
+                '--petal-rot':     `${(i * 57) % 360}deg`,
+                '--petal-dur':     `${5.5 + (i % 4) * 0.7}s`,
+                '--petal-size':    `${8 + (i % 3) * 2}px`,
+              } as React.CSSProperties}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Rose petal overlay — Chapter 2 Rose Garden only */}
+      {ambientTheme === 'rose' && (
+        <div className="rose-petals-overlay" aria-hidden="true">
+          {Array.from({ length: 12 }, (_, i) => (
+            <div
+              key={i}
+              className="rose-petal"
+              style={{
+                '--petal-delay':   `${-(i * 0.55)}s`,
+                '--petal-x-start': `${(i * 17 + 5) % 92}%`,
+                '--petal-drift-x': `${(i % 2 === 0 ? 1 : -1) * (10 + (i % 4) * 7)}px`,
+                '--petal-rot':     `${(i * 43) % 360}deg`,
+                '--petal-dur':     `${4.8 + (i % 5) * 0.6}s`,
+                '--petal-size':    `${10 + (i % 3) * 3}px`,
+              } as React.CSSProperties}
+            />
+          ))}
+        </div>
+      )}
+
       {/* SVG Definitions for tile gradients — swapped per theme */}
       <svg className="svg-defs-hidden">
         <defs>
@@ -536,6 +657,35 @@ export const GameBoard: React.FC<GameBoardProps> = ({
           })
         )}
       </div>
+
+      {/* L2 one-time waterline hint callout */}
+      {showWaterlineHint && waterLevelRow > 0 && waterLevelRow < 8 && (
+        <div
+          className="waterline-hint"
+          style={{ top: `${waterLevelRow * 12.5 - 1}%` }}
+          onClick={dismissHint}
+        >
+          <span className="waterline-hint-arrow">▼</span>
+          <span className="waterline-hint-text">Gems below float up · match from both sides</span>
+          <span className="waterline-hint-dismiss">✕</span>
+        </div>
+      )}
+
+      {/* L3 contextual valve tooltip */}
+      {showValveHint && firstValve && (
+        <div
+          className="valve-hint"
+          style={{
+            top:  `${firstValve.r * 12.5}%`,
+            left: `${Math.min(firstValve.c * 12.5 + 14, 55)}%`,
+          }}
+          onClick={dismissValveHint}
+        >
+          <span className="valve-hint-arrow">←</span>
+          <span className="valve-hint-text">Match beside to drain the flood</span>
+          <span className="valve-hint-dismiss">✕</span>
+        </div>
+      )}
 
       {/* Grid Algae locks (middle layer) */}
       <div className="algae-layer">

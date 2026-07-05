@@ -30,122 +30,493 @@ export interface LevelConfig {
   hasAlgae: boolean;
   hasValves: boolean;
   algaeCount: number;
+  frozenCount?: number;      // Number of frozen gem tiles to inject
   tutorialText: string[];
 }
 
 export const LEVELS: Record<number, LevelConfig> = {
   1: {
     id: 1,
-    name: 'The Dungeon Cellar',
-    targetCoins: 15,
-    initialWaterLevel: 1, 
-    waterRiseRate: 2.2,   
-    movesLimit: 25,
+    name: "The King's Discovery",
+    targetCoins: 12,
+    initialWaterLevel: 1,
+    waterRiseRate: 1.8,
+    movesLimit: 30,
     hasAlgae: false,
     hasValves: false,
     algaeCount: 0,
     tutorialText: [
-      "Let's save the King! Swap adjacent candies to match 3 or more of the same type.",
-      "Earn 1 Coin for each Gold Coin matched directly or collected by matching adjacent candies!",
-      "Watch out! Water pours constantly in real-time. Match any candies to drain it slightly!"
+      "The castle is flooding. Swap adjacent gems to match 3 or more of the same type — each match slows the water.",
+      "Gold coins drift in the flood. Match them directly, or match gems beside them to collect coins.",
+      "Collect enough coins before the water reaches the King. Watch the chamber — every move counts."
     ]
   },
   2: {
     id: 2,
-    name: 'The Flooding Chamber',
-    targetCoins: 20,
-    initialWaterLevel: 2, 
-    waterRiseRate: 2.8,
+    name: 'The First Step',
+    targetCoins: 16,
+    initialWaterLevel: 2,
+    waterRiseRate: 2.2,
     movesLimit: 28,
     hasAlgae: false,
     hasValves: false,
     algaeCount: 0,
     tutorialText: [
-      "High tide has reached the grid! Above this blue line, candies fall DOWN. Below it, candies float UPWARDS!"
+      "The flood has split the chamber. Watch the glowing waterline — gems above it fall DOWN, gems below it float UP.",
+      "Use the buoyancy to your advantage. Coins drift upward through the water — catch them before they sink back down."
     ]
   },
   3: {
     id: 3,
-    name: 'The Rusty Valves',
-    targetCoins: 22,
+    name: 'What the Cellars Remember',
+    targetCoins: 20,
     initialWaterLevel: 3,
-    waterRiseRate: 3.2,
+    waterRiseRate: 2.6,
     movesLimit: 28,
     hasAlgae: false,
     hasValves: true,
     algaeCount: 0,
     tutorialText: [
-      "Valves are now active! Match candies next to a Valve to spin it and drain water level by 15%!"
+      "The cellar has valves — golden wheels buried in the flood. Match any gem beside a valve to spin it and drain water.",
+      "Each valve drains 15% of the water. Find them, match next to them, and keep the memory golden."
     ]
   },
   4: {
     id: 4,
-    name: 'The Algae Garden',
-    targetCoins: 25,
+    name: "The Guard's Old Post",
+    targetCoins: 22,
     initialWaterLevel: 3,
-    waterRiseRate: 3.2,
+    waterRiseRate: 2.8,
     movesLimit: 28,
     hasAlgae: true,
     hasValves: false,
-    algaeCount: 10,
+    algaeCount: 6,
     tutorialText: [
-      "Thick Algae locks candies! Match adjacent candies to clear it, or it will spread to other gems!"
+      "Algae has crept into the cellar — green vines that lock gems in place. You cannot swap a locked gem.",
+      "Match any gem beside the algae to clear it. Keep the old post golden — don't let the green take over."
     ]
   },
   5: {
     id: 5,
-    name: 'The Frozen Vaults',
-    targetCoins: 28,
+    name: 'The Mirror Gate',
+    targetCoins: 26,
     initialWaterLevel: 3,
-    waterRiseRate: 3.5,
+    waterRiseRate: 3.2,
     movesLimit: 26,
-    hasAlgae: false,
+    hasAlgae: true,
     hasValves: true,
-    algaeCount: 0,
+    algaeCount: 8,
+    frozenCount: 6,
     tutorialText: [
-      "Ice Blocks have frozen the vaults! Locked gems cannot be swapped until you match them or clear adjacent blocks!"
+      "Ice has sealed some gems — a frozen lock you cannot swap through. Match any gem beside the ice to crack it open.",
+      "The first dream seal glows ahead. Clear the algae, spin the valves, and shatter the ice. The gate is close."
     ]
   },
   6: {
     id: 6,
-    name: 'The Boulder Barrage',
-    targetCoins: 30,
-    initialWaterLevel: 4,
-    waterRiseRate: 3.8,
+    name: 'The Garden Gate',
+    targetCoins: 28,
+    initialWaterLevel: 3,
+    waterRiseRate: 3.0,
     movesLimit: 28,
     hasAlgae: true,
     hasValves: true,
-    algaeCount: 8,
+    algaeCount: 6,
     tutorialText: [
-      "Heavy Iron Boulders are sinking in! Unmatchable boulders block your path. Match adjacent candies to crush them!"
+      "You step through the first seal into the King's dearest memory — the rose garden where they were wed. Dark algae creeps in from the edges, threatening to consume it.",
+      "Match gems beside the algae to clear it. Spin the golden valves to hold back the flood. Keep the garden bright."
     ]
   },
   7: {
     id: 7,
-    name: 'The Power Depths',
-    targetCoins: 35,
-    initialWaterLevel: 4,
-    waterRiseRate: 4.2,
+    name: 'The Ceremony Aisle',
+    targetCoins: 30,
+    initialWaterLevel: 3,
+    waterRiseRate: 3.3,
     movesLimit: 26,
-    hasAlgae: false,
+    hasAlgae: true,
     hasValves: true,
-    algaeCount: 0,
+    algaeCount: 8,
     tutorialText: [
-      "Unleash Power-Ups! Match 4 in a line for Blasters, 5 in T/L for Bombs, or 5 in a line for Lightning!"
+      "The ceremony aisle is thick with rose thorns — algae that has twisted into briars. Clear them by matching adjacent gems.",
+      "Bigger matches forge power-ups: match 4 in a line for a Blaster, an L or T shape for a Bomb, 5 in a line for Lightning. Use them to clear the aisle fast."
     ]
   },
   8: {
     id: 8,
-    name: 'The Ultimate Escape',
-    targetCoins: 45,
-    initialWaterLevel: 4,
-    waterRiseRate: 5.0, // Intense rise speed!
-    movesLimit: 32,
+    name: 'The Vow Stone',
+    targetCoins: 32,
+    initialWaterLevel: 3,
+    waterRiseRate: 3.6,
+    movesLimit: 26,
     hasAlgae: true,
     hasValves: true,
     algaeCount: 10,
+    frozenCount: 4,
     tutorialText: [
-      "The final chamber is flooding rapidly! Spreading algae, ice blocks, and heavy boulders block your escape!"
+      "The vow stone is buried — algae and ice have sealed the carved words. You cannot swap a frozen gem; match beside it to crack the stone.",
+      "Clear the algae, shatter the ice, and read the vows again before the water swallows them."
+    ]
+  },
+  9: {
+    id: 9,
+    name: 'The First Dance Gazebo',
+    targetCoins: 34,
+    initialWaterLevel: 3,
+    waterRiseRate: 3.8,
+    movesLimit: 25,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 11,
+    tutorialText: [
+      "The ivy has gone dark — it spreads with each move you don't clear it. Watch it grow and cut it back before it fills the gazebo.",
+      "Spin the golden valves to drain the flood and keep the dance floor alive. The music is still here if you listen."
+    ]
+  },
+
+  // ── Chapter 2 Finale ──────────────────────────────────────
+  10: {
+    id: 10,
+    name: 'The Wedding Seal',
+    targetCoins: 38,
+    initialWaterLevel: 3,
+    waterRiseRate: 4.2,
+    movesLimit: 25,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 12,
+    frozenCount: 6,
+    tutorialText: [
+      "The second dream seal pulses at the heart of the garden — guarded by algae, ice, and rising water all at once.",
+      "Every tool you have learned is needed here. Clear the thorns, crack the frost, spin the valves. Break the seal and let the garden breathe."
+    ]
+  },
+
+  // ── Chapter 3 — The Honeymoon Ship (cold theme) ───────────
+  11: {
+    id: 11,
+    name: 'The Harbour Departure',
+    targetCoins: 30,
+    initialWaterLevel: 2,
+    waterRiseRate: 3.2,
+    movesLimit: 28,
+    hasAlgae: false,
+    hasValves: true,
+    algaeCount: 0,
+    frozenCount: 8,
+    tutorialText: [
+      "The harbour cobblestones are glazing over. Ice crystals are locking gems in place — you cannot swap a frozen gem; match beside it to crack the ice.",
+      "The cold is spreading through the dream. Keep clearing and keep the harbour alive."
+    ]
+  },
+  12: {
+    id: 12,
+    name: 'Open Waters',
+    targetCoins: 34,
+    initialWaterLevel: 2,
+    waterRiseRate: 3.5,
+    movesLimit: 27,
+    hasAlgae: false,
+    hasValves: true,
+    algaeCount: 0,
+    frozenCount: 10,
+    tutorialText: [
+      "The open ocean is freezing over mid-drift. More gems are locked in ice here than before.",
+      "Work quickly — each frozen tile blocks movement. Match around them to open up the board."
+    ]
+  },
+  13: {
+    id: 13,
+    name: 'The Ice Storm',
+    targetCoins: 37,
+    initialWaterLevel: 3,
+    waterRiseRate: 3.8,
+    movesLimit: 26,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 5,
+    frozenCount: 12,
+    tutorialText: [
+      "The storm hits — ice and dark algae together for the first time. Both lock gems in place by different means.",
+      "Algae must be matched beside. Ice must be matched beside. Neither can be swapped directly. Clear both and keep the ship above water."
+    ]
+  },
+  14: {
+    id: 14,
+    name: 'Frozen Decks',
+    targetCoins: 40,
+    initialWaterLevel: 3,
+    waterRiseRate: 4.0,
+    movesLimit: 25,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 7,
+    frozenCount: 14,
+    tutorialText: [
+      "The decks are glazed solid. Almost every plank is locked. This is the hardest freeze yet.",
+      "Find the open gems and chain your matches. Every cleared tile opens another path."
+    ]
+  },
+  15: {
+    id: 15,
+    name: 'The Helm Seal',
+    targetCoins: 44,
+    initialWaterLevel: 3,
+    waterRiseRate: 4.4,
+    movesLimit: 24,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 8,
+    frozenCount: 14,
+    tutorialText: [
+      "The third seal is locked in ice at the ship's helm. Ice, algae, and fast-rising water all at once.",
+      "This is the coldest board you will face. Break it open — the image of her at the helm will carry you through."
+    ]
+  },
+
+  // ── Chapter 4 — The Nightmare (dark theme) ────────────────
+  16: {
+    id: 16,
+    name: 'The First Shadow',
+    targetCoins: 36,
+    initialWaterLevel: 3,
+    waterRiseRate: 3.9,
+    movesLimit: 26,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 10,
+    frozenCount: 6,
+    tutorialText: [
+      "The dream has turned dark. The sorcerer's influence is everywhere — algae grows faster and the light is failing.",
+      "Stay calm. The rules have not changed. Match, clear, drain. Push the shadow back."
+    ]
+  },
+  17: {
+    id: 17,
+    name: "The Sorcerer's Mark",
+    targetCoins: 39,
+    initialWaterLevel: 3,
+    waterRiseRate: 4.1,
+    movesLimit: 25,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 12,
+    frozenCount: 8,
+    tutorialText: [
+      "The dark sigils spread like algae and freeze like ice — the two obstacles lock gems in a double grip here.",
+      "Clear one layer, then the other. No single move does nothing."
+    ]
+  },
+  18: {
+    id: 18,
+    name: 'Shattered Palace',
+    targetCoins: 42,
+    initialWaterLevel: 3,
+    waterRiseRate: 4.3,
+    movesLimit: 25,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 12,
+    frozenCount: 10,
+    tutorialText: [
+      "The palace has been twisted — walls at wrong angles, flooding from above, obstacles piled on top of each other.",
+      "Don't try to plan too far ahead. React to what the board gives you and keep moving."
+    ]
+  },
+  19: {
+    id: 19,
+    name: 'The Dark Mirror',
+    targetCoins: 44,
+    initialWaterLevel: 3,
+    waterRiseRate: 4.5,
+    movesLimit: 24,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 12,
+    frozenCount: 12,
+    tutorialText: [
+      "The false king blocks every path — algae and ice lock the centre of the board. Power-ups are your best weapon here.",
+      "Match 4 or 5 to forge Blasters, Bombs, or Lightning. Use them to shatter the dark mirror."
+    ]
+  },
+  20: {
+    id: 20,
+    name: 'The Nightmare Seal',
+    targetCoins: 48,
+    initialWaterLevel: 3,
+    waterRiseRate: 4.8,
+    movesLimit: 24,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 14,
+    frozenCount: 14,
+    tutorialText: [
+      "The fourth seal is buried at the nightmare's deepest point. Every obstacle at full strength — this is the hardest board yet.",
+      "You have faced all of this before. Use everything you know. The nightmare ends here."
+    ]
+  },
+
+  // ── Chapter 5 — The First Battle (battle theme) ───────────
+  21: {
+    id: 21,
+    name: 'Before the Battle',
+    targetCoins: 38,
+    initialWaterLevel: 2,
+    waterRiseRate: 4.2,
+    movesLimit: 27,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 8,
+    frozenCount: 6,
+    tutorialText: [
+      "The battle memory blazes with energy — heavy obstacles block the board like a fortress wall.",
+      "Bigger matches pay off here. Match 4 in a row for a Blaster, an L or T for a Bomb. Save them for tight spots."
+    ]
+  },
+  22: {
+    id: 22,
+    name: 'The Siege',
+    targetCoins: 42,
+    initialWaterLevel: 3,
+    waterRiseRate: 4.4,
+    movesLimit: 26,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 10,
+    frozenCount: 8,
+    tutorialText: [
+      "The siege is relentless. Explosions chain across the board — use Bomb and Blaster power-ups together to clear wide.",
+      "The water rises fast here. Don't save power-ups — use them as soon as you have them."
+    ]
+  },
+  23: {
+    id: 23,
+    name: 'Side by Side',
+    targetCoins: 45,
+    initialWaterLevel: 3,
+    waterRiseRate: 4.6,
+    movesLimit: 25,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 10,
+    frozenCount: 10,
+    tutorialText: [
+      "Lightning flashed that day — and it flashes now. A 5-in-a-row match creates Lightning that clears an entire row and column.",
+      "Build toward Lightning matches to cut through the ice and algae at once."
+    ]
+  },
+  24: {
+    id: 24,
+    name: 'The Victory Feast',
+    targetCoins: 52,
+    initialWaterLevel: 2,
+    waterRiseRate: 4.2,
+    movesLimit: 28,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 6,
+    frozenCount: 6,
+    tutorialText: [
+      "The victory feast — coins tumble across the board in abundance. This is a moment of triumph.",
+      "The water still rises, but the board is rich. Match coins directly and match gems beside them to sweep them all in."
+    ]
+  },
+  25: {
+    id: 25,
+    name: 'The Battle Seal',
+    targetCoins: 50,
+    initialWaterLevel: 3,
+    waterRiseRate: 5.0,
+    movesLimit: 24,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 12,
+    frozenCount: 14,
+    tutorialText: [
+      "The fifth seal hides behind a wall of boulders and ice — the sorcerer's last defensive line in the battle memory.",
+      "Bring everything down with power-ups. Only one seal remains after this one."
+    ]
+  },
+
+  // ── Chapter 6 — The Awakening (ethereal theme) ────────────
+  26: {
+    id: 26,
+    name: 'The Deep Dream',
+    targetCoins: 44,
+    initialWaterLevel: 3,
+    waterRiseRate: 4.8,
+    movesLimit: 26,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 12,
+    frozenCount: 12,
+    tutorialText: [
+      "You are deeper inside the dream than anyone has ever gone. Everything glows — even the obstacles are beautiful here.",
+      "The rules are the same. The stakes are higher. She is close."
+    ]
+  },
+  27: {
+    id: 27,
+    name: 'Her Voice Returns',
+    targetCoins: 48,
+    initialWaterLevel: 3,
+    waterRiseRate: 5.0,
+    movesLimit: 25,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 12,
+    frozenCount: 14,
+    tutorialText: [
+      "Her voice is clear for the first time — not a whisper, but certain and close. The board shakes with the weight of her presence.",
+      "Keep matching. Keep draining. She is waiting at the final door."
+    ]
+  },
+  28: {
+    id: 28,
+    name: 'The Weaving of Memories',
+    targetCoins: 52,
+    initialWaterLevel: 3,
+    waterRiseRate: 5.2,
+    movesLimit: 25,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 14,
+    frozenCount: 14,
+    tutorialText: [
+      "All her memories converge here — rose garden, frozen ship, battle, golden cellars — woven into one vast, flooding board.",
+      "Every obstacle you have faced returns. Honour each one. This is her entire life."
+    ]
+  },
+  29: {
+    id: 29,
+    name: "The Sorcerer's Last Hold",
+    targetCoins: 56,
+    initialWaterLevel: 3,
+    waterRiseRate: 5.5,
+    movesLimit: 24,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 16,
+    frozenCount: 16,
+    tutorialText: [
+      "The sorcerer's final trap — every obstacle at maximum, water rising faster than it ever has. He built this to stop you.",
+      "You have walked through every room in his hell. Break the last block. The final seal is waiting."
+    ]
+  },
+  30: {
+    id: 30,
+    name: 'The Awakening',
+    targetCoins: 60,
+    initialWaterLevel: 2,
+    waterRiseRate: 5.8,
+    movesLimit: 26,
+    hasAlgae: true,
+    hasValves: true,
+    algaeCount: 16,
+    frozenCount: 16,
+    tutorialText: [
+      "One board. One seal. Every level, every memory, every whispered word has led to this.",
+      "Drain the last of the water. Place your hand on the seal. Open her eyes."
     ]
   }
 };
@@ -201,11 +572,10 @@ export function createInitialBoard(level: LevelConfig): GridState {
     }
   }
 
-  // Step 3: Inject Frozen Ice wrappers (Levels 5, 8)
-  if (level.id === 5 || level.id === 8) {
+  // Step 3: Inject Frozen Ice wrappers (driven by frozenCount field)
+  if (level.frozenCount && level.frozenCount > 0) {
     let icePlaced = 0;
-    const targetIce = level.id === 8 ? 8 : 10;
-    while (icePlaced < targetIce) {
+    while (icePlaced < level.frozenCount) {
       const r = Math.floor(Math.random() * 4) + 2;
       const c = Math.floor(Math.random() * 6) + 1;
       if (grid[r][c] && !grid[r][c]!.algae && !grid[r][c]!.frozen) {

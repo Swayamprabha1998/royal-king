@@ -261,9 +261,10 @@ const App: React.FC = () => {
             {/* Split Screen Stack */}
             <div className="game-stack">
               <div className="stack-chamber">
-                <DungeonChamber 
-                  waterLevel={waterLevel} 
-                  gameState={gameState} 
+                <DungeonChamber
+                  waterLevel={waterLevel}
+                  gameState={gameState}
+                  ambientTheme={currentTheme}
                 />
               </div>
 
@@ -279,6 +280,7 @@ const App: React.FC = () => {
                   firedPowerUps={firedPowerUps || []}
                   firedValveDrain={firedValveDrain || []}
                   ambientTheme={currentTheme}
+                  levelId={currentLevelId}
                 />
 
                 {/* Floating Coins Overlay */}

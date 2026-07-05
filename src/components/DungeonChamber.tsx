@@ -1,12 +1,67 @@
 import React, { useState, useEffect, useRef } from 'react';
+import type { AmbientTheme } from '../services/storyData';
 import './DungeonChamber.css';
 
 interface DungeonChamberProps {
   waterLevel: number; // 0 to 100
   gameState: 'playing' | 'tutorial' | 'gameover' | 'victory' | 'menu' | 'escaping';
+  ambientTheme?: AmbientTheme;
 }
 
-export const DungeonChamber: React.FC<DungeonChamberProps> = ({ waterLevel, gameState }) => {
+// Water palette per chapter theme
+const WATER_PALETTE: Record<AmbientTheme, {
+  overlay: [string, string];   // gradient top → bottom
+  waveFront: string;
+  waveBack: string;
+  stream: [string, string];    // stream gradient left → right
+  streamGlow: string;
+}> = {
+  warm:     {
+    overlay:   ['rgba(160,120,50,0.52)', 'rgba(130,90,25,0.72)'],
+    waveFront: 'rgba(190,150,60,0.65)',
+    waveBack:  'rgba(150,110,35,0.38)',
+    stream:    ['rgba(210,170,70,0.95)', 'rgba(180,130,40,0.95)'],
+    streamGlow: 'rgba(200,155,50,0.75)',
+  },
+  rose:     {
+    overlay:   ['rgba(225,90,140,0.48)', 'rgba(195,55,110,0.68)'],
+    waveFront: 'rgba(240,110,160,0.62)',
+    waveBack:  'rgba(200,65,120,0.36)',
+    stream:    ['rgba(245,130,175,0.95)', 'rgba(210,75,130,0.95)'],
+    streamGlow: 'rgba(235,100,150,0.75)',
+  },
+  cold:     {
+    overlay:   ['rgba(0,212,255,0.55)', 'rgba(0,122,255,0.70)'],
+    waveFront: 'rgba(0,212,255,0.60)',
+    waveBack:  'rgba(0,122,255,0.35)',
+    stream:    ['rgba(0,220,255,0.95)', 'rgba(0,130,255,0.95)'],
+    streamGlow: 'rgba(0,212,255,0.80)',
+  },
+  dark:     {
+    overlay:   ['rgba(110,65,190,0.52)', 'rgba(75,30,155,0.70)'],
+    waveFront: 'rgba(130,80,210,0.62)',
+    waveBack:  'rgba(90,40,170,0.36)',
+    stream:    ['rgba(150,100,230,0.95)', 'rgba(100,50,190,0.95)'],
+    streamGlow: 'rgba(130,80,210,0.75)',
+  },
+  battle:   {
+    overlay:   ['rgba(185,45,45,0.50)', 'rgba(150,20,20,0.68)'],
+    waveFront: 'rgba(210,60,60,0.62)',
+    waveBack:  'rgba(165,25,25,0.36)',
+    stream:    ['rgba(220,70,70,0.95)', 'rgba(175,30,30,0.95)'],
+    streamGlow: 'rgba(205,50,50,0.75)',
+  },
+  ethereal: {
+    overlay:   ['rgba(20,165,125,0.50)', 'rgba(10,130,100,0.68)'],
+    waveFront: 'rgba(30,185,140,0.62)',
+    waveBack:  'rgba(15,145,110,0.36)',
+    stream:    ['rgba(45,200,155,0.95)', 'rgba(15,155,120,0.95)'],
+    streamGlow: 'rgba(25,175,135,0.75)',
+  },
+};
+
+export const DungeonChamber: React.FC<DungeonChamberProps> = ({ waterLevel, gameState, ambientTheme = 'warm' }) => {
+  const pal = WATER_PALETTE[ambientTheme];
   // Determine King's visual state based on water level and game state
   let kingState: 'standing' | 'begging' | 'swimming' | 'drowned' | 'victory' = 'standing';
 
@@ -100,9 +155,13 @@ export const DungeonChamber: React.FC<DungeonChamberProps> = ({ waterLevel, game
 
       {/* Pouring stream is a direct child of the chamber, positioned relative to nozzle */}
       {waterLevel < 100 && (
-        <div 
+        <div
           className="water-pour-stream animate-stream"
-          style={{ height: `calc(100% - ${waterLevel}% - 32px)` }}
+          style={{
+            height: `calc(100% - ${waterLevel}% - 32px)`,
+            background: `linear-gradient(to right, ${pal.stream[0]}, ${pal.stream[1]})`,
+            boxShadow: `0 0 8px ${pal.streamGlow}`,
+          }}
         />
       )}
 
@@ -346,18 +405,21 @@ export const DungeonChamber: React.FC<DungeonChamberProps> = ({ waterLevel, game
       )}
 
       {/* Dynamic Water Overlay */}
-      <div 
-        className="water-overlay" 
-        style={{ height: `${waterLevel}%` }}
+      <div
+        className="water-overlay"
+        style={{
+          height: `${waterLevel}%`,
+          background: `linear-gradient(to bottom, ${pal.overlay[0]}, ${pal.overlay[1]})`,
+        }}
       >
         <div className="water-wave wave-front">
           <svg viewBox="0 0 120 28" preserveAspectRatio="none" className="wave-svg">
-            <path d="M0,15 C30,5 90,25 120,15 L120,28 L0,28 Z" fill="rgba(41, 128, 185, 0.7)" />
+            <path d="M0,15 C30,5 90,25 120,15 L120,28 L0,28 Z" fill={pal.waveFront} />
           </svg>
         </div>
         <div className="water-wave wave-back">
           <svg viewBox="0 0 120 28" preserveAspectRatio="none" className="wave-svg">
-            <path d="M0,15 C30,25 90,5 120,15 L120,28 L0,28 Z" fill="rgba(52, 152, 219, 0.4)" />
+            <path d="M0,15 C30,25 90,5 120,15 L120,28 L0,28 Z" fill={pal.waveBack} />
           </svg>
         </div>
 
