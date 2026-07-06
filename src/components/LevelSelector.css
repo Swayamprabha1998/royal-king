@@ -11,7 +11,7 @@
   overflow: hidden;
   box-sizing: border-box;
   background-image:
-    linear-gradient(135deg, rgba(255, 252, 240, 0.82) 0%, rgba(255, 242, 200, 0.76) 100%),
+    linear-gradient(135deg, rgba(255, 252, 240, 0.42) 0%, rgba(255, 242, 200, 0.36) 100%),
     url('/castle_bg.png');
   background-size: cover;
   background-position: center;
@@ -133,7 +133,7 @@
 }
 
 .sb-col.col-locked {
-  background: rgba(240, 236, 225, 0.3);
+  background: rgba(240, 236, 225, 0.08);
 }
 
 .sb-col.col-current {
@@ -387,6 +387,12 @@
   cursor: pointer;
   line-height: 1;
   padding: 0 4px;
+}
+
+.guide-modal-body {
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 6px;
 }
 
 .guide-modal-body ul {

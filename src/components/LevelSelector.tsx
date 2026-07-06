@@ -263,12 +263,17 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
             </div>
             <div className="guide-modal-body">
               <ul>
-                <li><span className="guide-icon">⭐</span><div><strong>Match 4:</strong> Forms <strong>Row/Col Blasters</strong>. Clears entire lines.</div></li>
-                <li><span className="guide-icon">💣</span><div><strong>Match 5 (T/L):</strong> Forms <strong>Dungeon Bombs</strong>. Explodes 3×3.</div></li>
-                <li><span className="guide-icon">⚡</span><div><strong>Match 5 (Line):</strong> Forms <strong>Lightning Gems</strong>. Zaps all matching colours.</div></li>
-                <li><span className="guide-icon">🧊</span><div><strong>Frozen Gems:</strong> Match adjacent to crack ice.</div></li>
-                <li><span className="guide-icon">🪨</span><div><strong>Iron Boulders:</strong> Sink downward — destroy by matching adjacent.</div></li>
-                <li><span className="guide-icon">🌿</span><div><strong>Spreading Algae:</strong> Spreads each turn without clearing it.</div></li>
+                <li><span className="guide-icon">🚀</span><div><strong>Row/Col Blasters:</strong> Match 4. Clears entire horizontal or vertical lines.</div></li>
+                <li><span className="guide-icon">💣</span><div><strong>Dungeon Bombs:</strong> Match 5 (T/L shape). Explodes adjacent 3×3 area.</div></li>
+                <li><span className="guide-icon">⚡</span><div><strong>Lightning Gems:</strong> Match 5 in a straight line. Zaps all matching color gems.</div></li>
+                <li><span className="guide-icon">❄️</span><div><strong>Chain Breaker:</strong> Formed by breaking 3 ice blocks. Shatters all ice wrappers on board.</div></li>
+                <li><span className="guide-icon">⚙️</span><div><strong>Golden Valves:</strong> Match adjacent to drain the flooding water level by 15%.</div></li>
+                <li><span className="guide-icon">🧊</span><div><strong>Frozen Gems:</strong> Match adjacent/directly to crack and clear ice wrappers.</div></li>
+                <li><span className="guide-icon">🪨</span><div><strong>Iron Boulders:</strong> Sink downward — destroy by matching adjacent gems.</div></li>
+                <li><span className="guide-icon">🌿</span><div><strong>Spreading Algae:</strong> Spreads to adjacent gems each turn if not cleared.</div></li>
+                <li><span className="guide-icon">💀</span><div><strong>Cursed Skulls:</strong> Cannot swap. Match adjacent to clear, but freezes 2 random gems!</div></li>
+                <li><span className="guide-icon">🔒</span><div><strong>Shadow Vaults:</strong> Obsidian blocks. Takes 2 adjacent matches or blast hits to shatter.</div></li>
+                <li><span className="guide-icon">🔴</span><div><strong>Dark Valves:</strong> Corrupted. Spins every 3 moves to raise water level by 5%. Shatter for +5 coins!</div></li>
                 <li><span className="guide-icon">🌊</span><div><strong>Buoyancy Line:</strong> Wet zone floats <strong>UP</strong>; dry zone falls <strong>DOWN</strong>.</div></li>
               </ul>
             </div>
