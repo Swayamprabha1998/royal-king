@@ -219,17 +219,19 @@ export const LEVELS: Record<number, LevelConfig> = {
   12: {
     id: 12,
     name: 'Open Waters',
-    targetCoins: 34,
+    targetCoins: 38,
     initialWaterLevel: 2,
     waterRiseRate: 3.5,
-    movesLimit: 27,
+    movesLimit: 26,
     hasAlgae: false,
     hasValves: true,
     algaeCount: 0,
     frozenCount: 10,
+    hasCursed: true,
+    cursedCount: 2,
     tutorialText: [
-      "The open ocean is freezing over mid-drift. More gems are locked in ice here than before.",
-      "Work quickly — each frozen tile blocks movement. Match around them to open up the board."
+      "The open ocean is freezing over mid-drift, and cursed skull tiles drift in the cold waters.",
+      "Work quickly — neither frozen nor cursed tiles can be swapped. Match beside them to crack the ice and lift the curse!"
     ]
   },
   13: {
