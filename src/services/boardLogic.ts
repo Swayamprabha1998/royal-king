@@ -183,17 +183,19 @@ export const LEVELS: Record<number, LevelConfig> = {
   10: {
     id: 10,
     name: 'The Wedding Seal',
-    targetCoins: 38,
+    targetCoins: 40,
     initialWaterLevel: 3,
     waterRiseRate: 4.2,
-    movesLimit: 25,
+    movesLimit: 24,
     hasAlgae: true,
     hasValves: true,
-    algaeCount: 12,
+    algaeCount: 10,
     frozenCount: 6,
+    hasCursed: true,
+    cursedCount: 5,
     tutorialText: [
-      "The second dream seal pulses at the heart of the garden — guarded by algae, ice, and rising water all at once.",
-      "Every tool you have learned is needed here. Clear the thorns, crack the frost, spin the valves. Break the seal and let the garden breathe."
+      "The second dream seal pulses at the heart of the garden — guarded by algae, ice, cursed skulls, and rising water all at once.",
+      "This is the Chapter 2 Finale. Every obstacle you have encountered is present here. Move carefully, break the curse, and shatter the seal!"
     ]
   },
 

@@ -239,7 +239,11 @@ export function useGameState() {
 
         if (coinCountCollected > 0) {
           gameAudio.playCoin();
-        } else if (isValveActivated) {
+        } else if (!isValveActivated) {
+          gameAudio.playMatch(combo);
+        }
+
+        if (isValveActivated) {
           gameAudio.playValve();
           // Trigger Drain Wave Sweep visual effect + sound
           gameAudio.playValveDrain();
@@ -248,8 +252,6 @@ export function useGameState() {
           setTimeout(() => {
             setFiredValveDrain(prev => prev.filter(id => id !== drainId));
           }, 2200);
-        } else {
-          gameAudio.playMatch(combo);
         }
 
         // Accumulate water drain and score — applied AFTER full cascade to avoid mid-cascade re-renders
