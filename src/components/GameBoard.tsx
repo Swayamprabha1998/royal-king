@@ -189,7 +189,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       amethyst: '#5856d6',
       coin:     '#ffeb60',
       valve:    '#8a9baf',
-      boulder:  '#475569'
+      boulder:  '#475569',
+      dark_valve: '#ef4444'
     };
 
     brokenTiles.forEach(tile => {
@@ -538,6 +539,61 @@ export const GameBoard: React.FC<GameBoardProps> = ({
             <path d="M8,10 L15,18 L13,24" />
             <path d="M32,30 L25,22 L27,15" />
             <path d="M12,28 L21,23 L22,32" />
+          </g>
+        )}
+      </svg>
+    );
+  };
+
+  const renderDarkValveIcon = (health: number) => {
+    return (
+      <svg viewBox="0 0 40 40" className={`tile-svg dark-valve-svg gem-3d health-${health}`}>
+        <defs>
+          <linearGradient id="dark-valve-metal" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#374151" />
+            <stop offset="60%" stopColor="#1f2937" />
+            <stop offset="100%" stopColor="#111827" />
+          </linearGradient>
+          <linearGradient id="dark-valve-glow" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#ef4444" />
+            <stop offset="100%" stopColor="#7f1d1d" />
+          </linearGradient>
+        </defs>
+        {/* Outer dark metal ring */}
+        <circle cx="20" cy="20" r="18" fill="url(#dark-valve-metal)" stroke="#991b1b" strokeWidth="1.8" />
+        <circle cx="20" cy="20" r="15.5" fill="none" stroke="rgba(239,68,68,0.25)" strokeWidth="0.8" />
+
+        {/* 3 Heavy Curved Blades (represents 3 health) */}
+        <g fill="url(#dark-valve-metal)" stroke="#7f1d1d" strokeWidth="1.2">
+          {/* Blade 1 (top) */}
+          <path d="M20,20 Q16,8 20,4 Q24,8 20,20" />
+          {/* Blade 2 (bottom-right) */}
+          <path d="M20,20 Q31,14 34,17 Q31,21 20,20" />
+          {/* Blade 3 (bottom-left) */}
+          <path d="M20,20 Q9,14 6,17 Q9,21 20,20" />
+        </g>
+
+        {/* 3 Red glowing spikes/notches on ring edges (representing health nodes) */}
+        {health >= 1 && <circle cx="20" cy="3" r="2.2" fill="#ef4444" filter="drop-shadow(0 0 2px #ef4444)" />}
+        {health >= 2 && <circle cx="34.7" cy="28.5" r="2.2" fill="#ef4444" filter="drop-shadow(0 0 2px #ef4444)" />}
+        {health >= 3 && <circle cx="5.3" cy="28.5" r="2.2" fill="#ef4444" filter="drop-shadow(0 0 2px #ef4444)" />}
+
+        {/* Central glowing hub */}
+        <circle cx="20" cy="20" r="7.5" fill="url(#dark-valve-glow)" stroke="#991b1b" strokeWidth="1.2" />
+        <circle cx="20" cy="20" r="4" fill="#ef4444" />
+        {/* Sheen */}
+        <ellipse cx="14" cy="12" rx="7" ry="4" fill="rgba(255,255,255,0.15)" transform="rotate(-25,13,12)" />
+
+        {/* Crack lines overlays for health <= 2 */}
+        {health <= 2 && (
+          <g stroke="#fca5a5" strokeWidth="1.2" strokeLinecap="round" fill="none">
+            <path d="M7,12 L14,18 L12,23" />
+          </g>
+        )}
+        {health <= 1 && (
+          <g stroke="#fca5a5" strokeWidth="1.2" strokeLinecap="round" fill="none">
+            <path d="M33,12 L26,18 L28,23" />
+            <path d="M20,32 L22,26 L17,24" />
           </g>
         )}
       </svg>
@@ -957,8 +1013,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 onMouseDown={(e) => handleMouseDown(e, r, c)}
                 onTouchStart={(e) => handleTouchStart(e, r, c)}
               >
-                <div className={cell.shadowVault ? 'tile-icon-container shadow-vault-tile' : cell.cursed ? 'tile-icon-container cursed-skull-tile' : cell.powerUp ? `tile-icon-container powerup-tile powerup-tile--${cell.powerUp}` : `tile-icon-container ${cell.type}`}>
-                  {cell.shadowVault ? renderShadowVaultIcon(cell.shadowVault) : cell.cursed ? renderCursedSkullIcon() : cell.powerUp ? renderPowerUpIcon(cell.powerUp) : renderTileIcon(cell.type)}
+                <div className={cell.shadowVault ? 'tile-icon-container shadow-vault-tile' : cell.type === 'dark_valve' ? 'tile-icon-container dark-valve-tile' : cell.cursed ? 'tile-icon-container cursed-skull-tile' : cell.powerUp ? `tile-icon-container powerup-tile powerup-tile--${cell.powerUp}` : `tile-icon-container ${cell.type}`}>
+                  {cell.shadowVault ? renderShadowVaultIcon(cell.shadowVault) : cell.type === 'dark_valve' ? renderDarkValveIcon(cell.darkValveHealth || 3) : cell.cursed ? renderCursedSkullIcon() : cell.powerUp ? renderPowerUpIcon(cell.powerUp) : renderTileIcon(cell.type)}
                 </div>
 
                 {/* Ice wrapper blocks — Icicle Drip style */}

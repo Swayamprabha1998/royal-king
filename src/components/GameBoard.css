@@ -1821,3 +1821,19 @@
   80%  { transform: translate(-0.5px, -0.5px) rotate(1deg); }
   100% { transform: translate(1px, 0.5px) rotate(0deg); }
 }
+
+/* ── Dark Valve Obstacle Styles ── */
+.dark-valve-tile {
+  transform: scale(0.98);
+  filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.45));
+  animation: dark-valve-pulse 2.2s ease-in-out infinite alternate;
+}
+
+.dark-valve-svg {
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes dark-valve-pulse {
+  0%   { filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.3)); }
+  100% { filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.7)); }
+}

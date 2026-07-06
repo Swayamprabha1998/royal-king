@@ -7,7 +7,8 @@ export type TileType =
   | 'amethyst'  // Purple gem
   | 'coin'      // Gold coin (ingredient/matchable)
   | 'valve'     // Valve (drains water)
-  | 'boulder';  // Heavy iron boulder (obstacle, unmatchable)
+  | 'boulder'   // Heavy iron boulder (obstacle, unmatchable)
+  | 'dark_valve'; // Corrupted valve (leak water, takes 3 hits to destroy)
 
 export interface CellState {
   id: string;      // Unique key for CSS animations and list tracking
@@ -17,6 +18,8 @@ export interface CellState {
   cursed?: boolean; // Cursed blocker (cannot swap tile, match adjacent, clear freezes 2 random gems)
   powerUp?: 'blast_row' | 'blast_col' | 'bomb' | 'lightning' | 'chain_breaker'; // Special items
   shadowVault?: number; // Shadow Vault block health (2 = full, 1 = cracked)
+  darkValveHealth?: number; // Dark Valve health (3 = full)
+  movesSinceLastSpin?: number; // Count turns for option 2 leaks
   isNew?: boolean; // Highlight flag
 }
 
@@ -38,6 +41,8 @@ export interface LevelConfig {
   hasChainBreaker?: boolean; // Support for chain breaker powerups
   hasShadowVault?: boolean;  // Support for shadow vaults
   shadowVaultCount?: number; // Number of shadow vaults to inject
+  hasDarkValves?: boolean;   // Support for dark valves
+  darkValvesCount?: number;  // Number of dark valves to inject
   tutorialText: string[];
 }
 
@@ -397,49 +402,57 @@ export const LEVELS: Record<number, LevelConfig> = {
   21: {
     id: 21,
     name: 'Before the Battle',
-    targetCoins: 38,
+    targetCoins: 48,
     initialWaterLevel: 2,
-    waterRiseRate: 4.2,
-    movesLimit: 27,
+    waterRiseRate: 4.0,
+    movesLimit: 26,
     hasAlgae: true,
-    hasValves: true,
-    algaeCount: 8,
+    hasValves: false,
+    algaeCount: 6,
     frozenCount: 6,
+    hasDarkValves: true,
+    darkValvesCount: 3,
     tutorialText: [
-      "The battle memory blazes with energy — heavy obstacles block the board like a fortress wall.",
-      "Bigger matches pay off here. Match 4 in a row for a Blaster, an L or T for a Bomb. Save them for tight spots."
+      "Corrupted red Dark Valves are active! Unlike golden valves that drain water, spinning a Dark Valve leaks and raises the water level by 5% every 3 moves.",
+      "It takes 3 adjacent matches (or power-up hits) to destroy it. Shattering it rewards you with +5 coins. Move carefully!"
     ]
   },
   22: {
     id: 22,
     name: 'The Siege',
-    targetCoins: 42,
+    targetCoins: 52,
     initialWaterLevel: 3,
     waterRiseRate: 4.4,
-    movesLimit: 26,
+    movesLimit: 25,
     hasAlgae: true,
-    hasValves: true,
-    algaeCount: 10,
+    hasValves: false,
+    algaeCount: 8,
     frozenCount: 8,
+    hasDarkValves: true,
+    darkValvesCount: 4,
     tutorialText: [
-      "The siege is relentless. Explosions chain across the board — use Bomb and Blaster power-ups together to clear wide.",
-      "The water rises fast here. Don't save power-ups — use them as soon as you have them."
+      "The siege is relentless. Clustered Dark Valves leak water from multiple directions.",
+      "Clear the dark valves and algae quickly using blasters and bombs to keep the flood from rising too high!"
     ]
   },
   23: {
     id: 23,
     name: 'Side by Side',
-    targetCoins: 45,
+    targetCoins: 56,
     initialWaterLevel: 3,
     waterRiseRate: 4.6,
-    movesLimit: 25,
+    movesLimit: 24,
     hasAlgae: true,
-    hasValves: true,
+    hasValves: false,
     algaeCount: 10,
     frozenCount: 10,
+    hasCursed: true,
+    cursedCount: 4,
+    hasDarkValves: true,
+    darkValvesCount: 5,
     tutorialText: [
-      "Lightning flashed that day — and it flashes now. A 5-in-a-row match creates Lightning that clears an entire row and column.",
-      "Build toward Lightning matches to cut through the ice and algae at once."
+      "We stand side-by-side against the siege. Dark Valves and cursed skulls cover both halves of the board.",
+      "Match next to them quickly before the water fills the arena!"
     ]
   },
   24: {
@@ -676,6 +689,22 @@ export function createInitialBoard(level: LevelConfig): GridState {
     }
   }
 
+  // Step 5.2: Inject Dark Valves (driven by darkValvesCount field)
+  if (level.hasDarkValves && level.darkValvesCount && level.darkValvesCount > 0) {
+    let darkValvesPlaced = 0;
+    while (darkValvesPlaced < level.darkValvesCount) {
+      const r = Math.floor(Math.random() * 4) + 2;
+      const c = Math.floor(Math.random() * 8);
+      const cell = grid[r][c];
+      if (cell && !cell.algae && !cell.frozen && !cell.cursed && !cell.shadowVault && cell.type !== 'boulder' && cell.type !== 'valve' && cell.type !== 'dark_valve') {
+        cell.type = 'dark_valve';
+        cell.darkValveHealth = 3; // 3 hits to destroy
+        cell.movesSinceLastSpin = 0; // turn tracking
+        darkValvesPlaced++;
+      }
+    }
+  }
+
   // Inject initial coins
   for (let i = 0; i < 3; i++) {
     const r = Math.floor(Math.random() * 4) + 2;
@@ -720,6 +749,7 @@ export function scanMatches(grid: GridState): {
   clearedAlgaeCoords: { r: number; c: number }[];
   clearedCursedCoords: { r: number; c: number }[];
   damagedShadowVaults: { r: number; c: number }[];
+  damagedDarkValves: { r: number; c: number }[];
 } {
   const rows = 8;
   const cols = 8;
@@ -734,11 +764,12 @@ export function scanMatches(grid: GridState): {
   const clearedAlgaeCoords: { r: number; c: number }[] = [];
   const clearedCursedCoords: { r: number; c: number }[] = [];
   const damagedShadowVaults: { r: number; c: number }[] = [];
+  const damagedDarkValves: { r: number; c: number }[] = [];
 
-  // Helper to check if tile is matchable (boulders are not matchable!)
+  // Helper to check if tile is matchable (boulders/valves/dark_valves are not matchable!)
   const isMatchable = (r: number, c: number) => {
     const cell = grid[r][c];
-    return cell && cell.type !== 'boulder' && cell.type !== 'valve' && !cell.shadowVault;
+    return cell && cell.type !== 'boulder' && cell.type !== 'valve' && cell.type !== 'dark_valve' && !cell.shadowVault;
   };
 
   // 1. Horizontal scans
@@ -972,6 +1003,11 @@ export function scanMatches(grid: GridState): {
       if (cell.shadowVault && (matchMask[r][c] || adjacentToMatch(r, c))) {
         damagedShadowVaults.push({ r, c });
       }
+
+      // Match next to or on Dark Valve damages it
+      if (cell.type === 'dark_valve' && (matchMask[r][c] || adjacentToMatch(r, c))) {
+        damagedDarkValves.push({ r, c });
+      }
     }
   }
 
@@ -996,7 +1032,8 @@ export function scanMatches(grid: GridState): {
     crackedIceCoords,
     clearedAlgaeCoords,
     clearedCursedCoords,
-    damagedShadowVaults
+    damagedShadowVaults,
+    damagedDarkValves
   };
 }
 
@@ -1012,8 +1049,9 @@ export function swapTiles(grid: GridState, r1: number, c1: number, r2: number, c
 
   if (!cell1 || !cell2) return null;
 
-  // Locked blocks cannot be manually swapped!
+  // Locked blocks, valves, boulders, dark valves, and shadow vaults cannot be manually swapped!
   if (cell1.algae || cell2.algae || cell1.frozen || cell2.frozen || cell1.cursed || cell2.cursed || cell1.shadowVault || cell2.shadowVault) return null;
+  if (cell1.type === 'valve' || cell2.type === 'valve' || cell1.type === 'boulder' || cell2.type === 'boulder' || cell1.type === 'dark_valve' || cell2.type === 'dark_valve') return null;
 
   const newGrid = grid.map(row => [...row]);
   newGrid[r1][c1] = cell2;
@@ -1066,7 +1104,7 @@ export function applyBuoyancyAndGravity(grid: GridState, waterLevelRow: number, 
 
       for (let r = 0; r < waterLevelRow; r++) {
         const cell = newGrid[r][c];
-        if (cell && (cell.algae || cell.cursed || cell.shadowVault)) {
+        if (cell && (cell.algae || cell.cursed || cell.shadowVault || cell.type === 'valve' || cell.type === 'dark_valve')) {
           algaeRows.add(r); // fixed — never moved
         } else if (cell) {
           freeTiles.push(cell); // moveable tile
@@ -1101,7 +1139,7 @@ export function applyBuoyancyAndGravity(grid: GridState, waterLevelRow: number, 
 
       for (let r = waterLevelRow; r < rows; r++) {
         const cell = newGrid[r][c];
-        if (cell && (cell.algae || cell.cursed || cell.shadowVault)) {
+        if (cell && (cell.algae || cell.cursed || cell.shadowVault || cell.type === 'valve' || cell.type === 'dark_valve')) {
           algaeRows.add(r); // fixed
         } else if (cell) {
           if (cell.type === 'boulder') {

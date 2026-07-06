@@ -200,7 +200,8 @@ export function useGameState() {
         crackedIceCoords,
         clearedAlgaeCoords,
         clearedCursedCoords,
-        damagedShadowVaults
+        damagedShadowVaults,
+        damagedDarkValves
       } = scanMatches(currentGrid);
 
       if (matches.length > 0) {
@@ -308,6 +309,9 @@ export function useGameState() {
         matches.forEach(({ r, c }) => {
           const cell = currentGrid[r][c];
           if (cell) {
+            if (cell.type === 'dark_valve') {
+              return; // Protected from instant matching clearing
+            }
             if (cell.cursed) {
               cursesTriggeredCount++;
               cell.cursed = false;
@@ -361,6 +365,36 @@ export function useGameState() {
                 r,
                 c,
                 type: 'amethyst' // purple obsidian shard effect
+              });
+            }
+          }
+        });
+
+        // Resolve hits to Dark Valves
+        const uniqueDarkValveHits = new Set<string>();
+        damagedDarkValves.forEach(({ r, c }) => {
+          uniqueDarkValveHits.add(`${r}_${c}`);
+        });
+
+        uniqueDarkValveHits.forEach(coordStr => {
+          const [r, c] = coordStr.split('_').map(Number);
+          const cell = currentGrid[r][c];
+          if (cell && cell.type === 'dark_valve') {
+            if (cell.darkValveHealth === undefined) {
+              cell.darkValveHealth = 3;
+            }
+            cell.darkValveHealth -= 1;
+            gameAudio.playClick();
+
+            if (cell.darkValveHealth <= 0) {
+              currentGrid[r][c] = null;
+              coinsEarnedThisTurn += 5; // Yields +5 coins!
+              totalScoreThisTurn += 500;
+              newBroken.push({
+                id: `dark_valve_break_${r}_${c}_${Date.now()}`,
+                r,
+                c,
+                type: 'dark_valve' // fiery ruby/metal debris shards
               });
             }
           }
@@ -458,6 +492,30 @@ export function useGameState() {
         });
         return nextMoves;
       });
+
+      // Increment turn counter on all active Dark Valves (spin & leak 5% water every 3 moves)
+      let totalWaterRisePercent = 0;
+      let anyDarkValveSpun = false;
+
+      currentGrid = currentGrid.map(row =>
+        row.map(cell => {
+          if (cell && cell.type === 'dark_valve') {
+            const nextMovesSinceLastSpin = (cell.movesSinceLastSpin || 0) + 1;
+            if (nextMovesSinceLastSpin >= 3) {
+              totalWaterRisePercent += 5;
+              anyDarkValveSpun = true;
+              return { ...cell, movesSinceLastSpin: 0 };
+            }
+            return { ...cell, movesSinceLastSpin: nextMovesSinceLastSpin };
+          }
+          return cell;
+        })
+      );
+
+      if (anyDarkValveSpun && totalWaterRisePercent > 0) {
+        setWaterLevel(prev => Math.min(100, prev + totalWaterRisePercent));
+        gameAudio.playClick(); // play spin alarm click
+      }
     }
 
     // Strip isNew flags (spawn animations done) and unlock board
@@ -613,7 +671,7 @@ export function useGameState() {
     if (isBoardLocked || gameState !== 'playing') return;
 
     const cell = grid[r][c];
-    if (!cell || cell.algae || cell.frozen || cell.cursed || cell.shadowVault) return; // cannot select locked/ice/cursed/vault tiles
+    if (!cell || cell.algae || cell.frozen || cell.cursed || cell.shadowVault || cell.type === 'valve' || cell.type === 'dark_valve' || cell.type === 'boulder') return; // cannot select locked/ice/cursed/vault/obstacle tiles
 
     if (selectedTile) {
       if (selectedTile.r === r && selectedTile.c === c) {
