@@ -1,0 +1,230 @@
+/* ── Glimmertide Auth Screen — Royal Parchment Theme ── */
+
+.auth-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  padding: 16px;
+  box-sizing: border-box;
+
+  /* Same background as the game viewport */
+  background-image:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.72) 0%, rgba(254, 243, 199, 0.6) 100%),
+    url('/castle_bg.png');
+  background-size: cover;
+  background-position: center;
+}
+
+/* Card — parchment glass panel matching HUD style */
+.auth-card {
+  background: rgba(255, 252, 238, 0.94);
+  border: 1.5px solid rgba(180, 140, 40, 0.3);
+  border-radius: 20px;
+  padding: 32px 28px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow:
+    0 8px 40px rgba(160, 120, 30, 0.15),
+    0 2px 8px rgba(160, 120, 30, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Gold top accent line on card */
+.auth-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 10%; right: 10%;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(200, 160, 50, 0.6) 30%,
+    rgba(200, 160, 50, 0.9) 50%,
+    rgba(200, 160, 50, 0.6) 70%,
+    transparent
+  );
+}
+.auth-card { position: relative; }
+
+/* Branding */
+.auth-brand {
+  text-align: center;
+}
+
+.auth-crown {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 2px 6px rgba(160, 120, 30, 0.35));
+  animation: auth-float 3s ease-in-out infinite;
+}
+
+@keyframes auth-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+
+.auth-game-title {
+  font-family: 'Georgia', serif;
+  font-size: 26px;
+  color: #7a5c00;
+  margin: 0 0 4px;
+  letter-spacing: 3px;
+  text-shadow: 0 1px 2px rgba(160, 120, 30, 0.2);
+}
+
+.auth-game-sub {
+  font-size: 11px;
+  color: #8a7040;
+  margin: 0;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* Tabs */
+.auth-tabs {
+  display: flex;
+  background: rgba(180, 140, 40, 0.08);
+  border: 1px solid rgba(180, 140, 40, 0.2);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 3px;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 9px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #8a7040;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.auth-tab--active {
+  background: rgba(197, 160, 89, 0.85);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(160, 120, 30, 0.25);
+}
+
+/* Form */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.auth-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8a7040;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.auth-input {
+  background: rgba(255, 255, 255, 0.75);
+  border: 1.5px solid rgba(180, 140, 40, 0.25);
+  border-radius: 10px;
+  padding: 11px 14px;
+  color: #1e293b;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.auth-input::placeholder {
+  color: #b8a070;
+}
+
+.auth-input:focus {
+  border-color: rgba(197, 160, 89, 0.7);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.15);
+}
+
+/* Error message */
+.auth-error {
+  font-size: 12px;
+  color: #b91c1c;
+  margin: 0;
+  padding: 8px 12px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* Buttons */
+.auth-btn {
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 12px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.auth-btn:active   { transform: scale(0.97); }
+.auth-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.auth-btn--primary {
+  background: linear-gradient(135deg, #c5a059 0%, #a07830 100%);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(160, 120, 30, 0.35);
+  letter-spacing: 0.5px;
+}
+.auth-btn--primary:hover:not(:disabled) {
+  box-shadow: 0 6px 20px rgba(160, 120, 30, 0.5);
+}
+
+.auth-btn--google {
+  background: #fff;
+  color: #1f1f1f;
+  border: 1.5px solid rgba(180, 140, 40, 0.25);
+  box-shadow: 0 2px 6px rgba(160, 120, 30, 0.1);
+}
+.auth-btn--google:hover:not(:disabled) {
+  background: #fefdf8;
+  border-color: rgba(197, 160, 89, 0.45);
+}
+
+/* Divider */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #b8a070;
+  font-size: 12px;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(180, 140, 40, 0.2);
+}

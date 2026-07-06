@@ -1,6 +1,11 @@
 // Custom React Hook for Game State Management
 import { useState, useRef, useEffect } from 'react';
 import type { GridState, LevelConfig, TileType } from '../services/boardLogic';
+import {
+  loadProgress,
+  saveLevelProgress,
+  resetProgress as resetFirestoreProgress,
+} from '../services/progressService';
 import { 
   LEVELS, 
   createInitialBoard, 
@@ -13,7 +18,7 @@ import {
 } from '../services/boardLogic';
 import { gameAudio } from '../services/audio';
 
-export function useGameState() {
+export function useGameState(uid?: string) {
   // Load persistent progression from localStorage (up to level 30)
   const getSavedUnlockedLevel = (): number => {
     const saved = localStorage.getItem('royal_rescue_unlocked_level');
@@ -33,6 +38,24 @@ export function useGameState() {
   const [isBoardLocked, setIsBoardLocked] = useState(false);
   const [highestLevelUnlocked, setHighestLevelUnlocked] = useState<number>(getSavedUnlockedLevel());
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
+
+  // ── Hydrate progress from Firestore when user logs in ────────
+  useEffect(() => {
+    if (!uid) return;
+    loadProgress(uid).then(progress => {
+      // Sync Firestore → localStorage → React state
+      const highest = Math.max(progress.highestLevelUnlocked, getSavedUnlockedLevel());
+      setHighestLevelUnlocked(highest);
+      localStorage.setItem('royal_rescue_unlocked_level', highest.toString());
+
+      Object.entries(progress.levels).forEach(([levelId, data]) => {
+        const key = `royal_rescue_stars_level_${levelId}`;
+        const local = parseInt(localStorage.getItem(key) || '0');
+        const best  = Math.max(data.stars, local);
+        localStorage.setItem(key, best.toString());
+      });
+    }).catch(console.error);
+  }, [uid]);
   const [floatingCoins, setFloatingCoins] = useState<{ id: string; r: number; c: number; value: number }[]>([]);
   const [brokenTiles, setBrokenTiles] = useState<{ id: string; r: number; c: number; type: TileType }[]>([]);
   const [firedPowerUps, setFiredPowerUps] = useState<{ id: string; r: number; c: number; type: 'blast_row' | 'blast_col' | 'bomb' | 'lightning' | 'chain_breaker' }[]>([]);
@@ -163,6 +186,12 @@ export function useGameState() {
       if (nextLevel > highestLevelUnlocked) {
         setHighestLevelUnlocked(nextLevel);
         localStorage.setItem('royal_rescue_unlocked_level', nextLevel.toString());
+      }
+
+      // Save to Firestore (non-blocking)
+      if (uid) {
+        saveLevelProgress(uid, currentLevelId, starsEarned, score, nextLevel)
+          .catch(console.error);
       }
 
       // Wait 2.5 seconds for walking escape animation to complete before showing victory modal
@@ -719,6 +748,8 @@ export function useGameState() {
       setHighestLevelUnlocked(1);
       setCurrentLevelId(1);
       setLevelConfig(LEVELS[1]);
+      // Reset in Firestore too
+      if (uid) resetFirestoreProgress(uid).catch(console.error);
     }
   };
 
