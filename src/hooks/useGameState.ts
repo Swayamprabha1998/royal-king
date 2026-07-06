@@ -55,6 +55,18 @@ export function useGameState(uid?: string) {
   useEffect(() => {
     if (!uid) return;
     loadProgress(uid).then(progress => {
+      // Brand new account — wipe any stale localStorage from a previous session
+      // so the new user always starts at level 1 (no cross-account contamination)
+      if (progress.isNewUser) {
+        localStorage.removeItem('royal_rescue_unlocked_level');
+        for (let i = 1; i <= 30; i++) {
+          localStorage.removeItem(`royal_rescue_stars_level_${i}`);
+        }
+        setHighestLevelUnlocked(1);
+        setLevelStars({});
+        return;
+      }
+
       const localHighest = getSavedUnlockedLevel();
       const highest = Math.max(progress.highestLevelUnlocked, localHighest);
       setHighestLevelUnlocked(highest);
@@ -73,8 +85,7 @@ export function useGameState(uid?: string) {
       setLevelStars(merged);
 
       // If local was ahead of Firestore, push merged data up so other devices see it
-      const firestoreHighest = progress.highestLevelUnlocked;
-      if (localHighest > firestoreHighest) {
+      if (localHighest > progress.highestLevelUnlocked) {
         pushLocalProgressToFirestore(uid, highest, merged).catch(console.error);
       }
     }).catch(console.error);

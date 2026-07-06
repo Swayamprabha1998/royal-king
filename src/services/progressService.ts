@@ -17,14 +17,15 @@ const defaultProgress = (): UserProgress => ({
 });
 
 // ── Load all progress for a user ─────────────────────────────
-export const loadProgress = async (uid: string): Promise<UserProgress> => {
+export const loadProgress = async (uid: string): Promise<UserProgress & { isNewUser: boolean }> => {
   const ref = doc(db, 'users', uid);
   const snap = await getDoc(ref);
-  if (!snap.exists()) return defaultProgress();
+  if (!snap.exists()) return { ...defaultProgress(), isNewUser: true };
   const data = snap.data();
   return {
     highestLevelUnlocked: data.highestLevelUnlocked ?? 1,
     levels: data.levels ?? {},
+    isNewUser: false,
   };
 };
 
