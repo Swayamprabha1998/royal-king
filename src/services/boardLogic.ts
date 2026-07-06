@@ -458,33 +458,40 @@ export const LEVELS: Record<number, LevelConfig> = {
   24: {
     id: 24,
     name: 'The Victory Feast',
-    targetCoins: 52,
+    targetCoins: 58,
     initialWaterLevel: 2,
     waterRiseRate: 4.2,
-    movesLimit: 28,
+    movesLimit: 23,
     hasAlgae: true,
-    hasValves: true,
+    hasValves: false,
     algaeCount: 6,
     frozenCount: 6,
+    hasDarkValves: true,
+    darkValvesCount: 4,
     tutorialText: [
-      "The victory feast — coins tumble across the board in abundance. This is a moment of triumph.",
-      "The water still rises, but the board is rich. Match coins directly and match gems beside them to sweep them all in."
+      "The victory feast is rich with Gold Coins. Leaking Dark Valves threat to spoil the celebration.",
+      "Collect all the coins you can and match next to the Dark Valves to shut down the dark leaks!"
     ]
   },
   25: {
     id: 25,
     name: 'The Battle Seal',
-    targetCoins: 50,
+    targetCoins: 62,
     initialWaterLevel: 3,
     waterRiseRate: 5.0,
-    movesLimit: 24,
+    movesLimit: 21,
     hasAlgae: true,
-    hasValves: true,
+    hasValves: false,
     algaeCount: 12,
     frozenCount: 14,
+    hasCursed: true,
+    cursedCount: 4,
+    hasDarkValves: true,
+    darkValvesCount: 5,
+    hasChainBreaker: true,
     tutorialText: [
-      "The fifth seal hides behind a wall of boulders and ice — the sorcerer's last defensive line in the battle memory.",
-      "Bring everything down with power-ups. Only one seal remains after this one."
+      "The fifth seal is locked inside the Battle keep. Leaking Dark Valves, ice, algae, and cursed skulls block all paths.",
+      "This is the Chapter 5 Climax. Unlock the Chain Breakers, clear the curses, destroy the leaks, and shatter the Battle Seal!"
     ]
   },
 
@@ -492,17 +499,22 @@ export const LEVELS: Record<number, LevelConfig> = {
   26: {
     id: 26,
     name: 'The Deep Dream',
-    targetCoins: 44,
+    targetCoins: 54,
     initialWaterLevel: 3,
     waterRiseRate: 4.8,
-    movesLimit: 26,
+    movesLimit: 25,
     hasAlgae: true,
     hasValves: true,
-    algaeCount: 12,
-    frozenCount: 12,
+    algaeCount: 10,
+    frozenCount: 10,
+    hasCursed: true,
+    cursedCount: 3,
+    hasShadowVault: true,
+    shadowVaultCount: 3,
+    hasChainBreaker: true,
     tutorialText: [
-      "You are deeper inside the dream than anyone has ever gone. Everything glows — even the obstacles are beautiful here.",
-      "The rules are the same. The stakes are higher. She is close."
+      "You have reached Chapter 6: The Awakening. In 'The Deep Dream', all obstacles combine — algae, ice, cursed skulls, and shadow vaults grid the board.",
+      "The stakes are higher than ever. Clear these blocks to find the way out and set her free!"
     ]
   },
   27: {
