@@ -5,6 +5,7 @@ import { GameBoard } from './components/GameBoard';
 import { LevelSelector } from './components/LevelSelector';
 import { GameplayTutorial } from './components/GameplayTutorial';
 import { LevelClosurePanel } from './components/LevelClosurePanel';
+import { QueenAwakeningScreen } from './components/QueenAwakeningScreen';
 import { DreamWhisperOverlay } from './components/DreamWhisperOverlay';
 import { ChapterIntroScreen } from './components/ChapterIntroScreen';
 import { CHAPTERS, getLevelStory, getChapterForLevel, isFirstLevelOfChapter } from './services/storyData';
@@ -342,15 +343,28 @@ const App: React.FC = () => {
 
             {/* 3. Victory — Narrative Closure Panel */}
             {gameState === 'victory' && (
-              <LevelClosurePanel
-                levelId={currentLevelId}
-                score={score}
-                movesRemaining={movesRemaining}
-                coinsCollected={coinsCollected}
-                targetCoins={levelConfig.targetCoins}
-                onNextLevel={() => selectLevelWithIntro(currentLevelId + 1)}
-                onBackToMap={() => setGameState('menu')}
-              />
+              currentLevelId === 30 ? (
+                <QueenAwakeningScreen
+                  score={score}
+                  movesRemaining={movesRemaining}
+                  coinsCollected={coinsCollected}
+                  onRestartGame={() => {
+                    localStorage.clear();
+                    window.location.reload();
+                  }}
+                  onRevisitMap={() => setGameState('menu')}
+                />
+              ) : (
+                <LevelClosurePanel
+                  levelId={currentLevelId}
+                  score={score}
+                  movesRemaining={movesRemaining}
+                  coinsCollected={coinsCollected}
+                  targetCoins={levelConfig.targetCoins}
+                  onNextLevel={() => selectLevelWithIntro(currentLevelId + 1)}
+                  onBackToMap={() => setGameState('menu')}
+                />
+              )
             )}
           </div>
         )}
