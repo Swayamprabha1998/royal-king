@@ -61,7 +61,7 @@ const WATER_PALETTE: Record<AmbientTheme, {
 };
 
 export const DungeonChamber: React.FC<DungeonChamberProps> = ({ waterLevel, gameState, ambientTheme = 'warm' }) => {
-  const pal = WATER_PALETTE[ambientTheme];
+  const pal = WATER_PALETTE['cold']; // always blue regardless of theme
   // Determine King's visual state based on water level and game state
   let kingState: 'standing' | 'begging' | 'swimming' | 'drowned' | 'victory' = 'standing';
 

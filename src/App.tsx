@@ -8,7 +8,8 @@ import { LevelClosurePanel } from './components/LevelClosurePanel';
 import { QueenAwakeningScreen } from './components/QueenAwakeningScreen';
 import { DreamWhisperOverlay } from './components/DreamWhisperOverlay';
 import { ChapterIntroScreen } from './components/ChapterIntroScreen';
-import { CHAPTERS, getLevelStory, getChapterForLevel, isFirstLevelOfChapter } from './services/storyData';
+import { CHAPTERS, getLevelStory, getChapterForLevel, isFirstLevelOfChapter, isLastLevelOfChapter } from './services/storyData';
+import { ChapterSealScreen } from './components/ChapterSealScreen';
 import './App.css';
 
 interface FloatingCoinItemProps {
@@ -344,6 +345,7 @@ const App: React.FC = () => {
             {/* 3. Victory — Narrative Closure Panel */}
             {gameState === 'victory' && (
               currentLevelId === 30 ? (
+                /* Final chapter — full Queen Awakening cinematic */
                 <QueenAwakeningScreen
                   score={score}
                   movesRemaining={movesRemaining}
@@ -354,7 +356,19 @@ const App: React.FC = () => {
                   }}
                   onRevisitMap={() => setGameState('menu')}
                 />
+              ) : isLastLevelOfChapter(currentLevelId) ? (
+                /* Chapter 1–5 final level — seal activation screen */
+                <ChapterSealScreen
+                  completedChapterNumber={getChapterForLevel(currentLevelId)?.chapterNumber ?? 1}
+                  score={score}
+                  movesRemaining={movesRemaining}
+                  coinsCollected={coinsCollected}
+                  targetCoins={levelConfig.targetCoins}
+                  onNextLevel={() => selectLevelWithIntro(currentLevelId + 1)}
+                  onBackToMap={() => setGameState('menu')}
+                />
               ) : (
+                /* Mid-chapter levels — standard closure panel */
                 <LevelClosurePanel
                   levelId={currentLevelId}
                   score={score}

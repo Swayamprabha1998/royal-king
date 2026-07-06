@@ -1681,6 +1681,14 @@
   background: radial-gradient(circle at 40% 35%, rgba(255,180,210,0.95), rgba(210,80,130,0.6));
 }
 
+.board-container.theme-cold .drain-wave-band {
+  background: linear-gradient(180deg, rgba(0,190,240,0.55) 0%, rgba(0,140,210,0.28) 60%, transparent 100%);
+  border-top-color: rgba(100,230,255,0.85);
+}
+.board-container.theme-cold .drain-wave-particle {
+  background: radial-gradient(circle at 40% 35%, rgba(200,245,255,0.95), rgba(0,180,230,0.6));
+}
+
 .board-container.theme-dark .drain-wave-band {
   background: linear-gradient(180deg, rgba(130,80,210,0.55) 0%, rgba(90,40,170,0.28) 60%, transparent 100%);
   border-top-color: rgba(165,110,240,0.85);

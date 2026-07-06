@@ -126,6 +126,7 @@ export const GameBoard: React.FC<GameBoardProps> = ({
 }) => {
   const t = THEME_GEMS[ambientTheme];
   const [swipeStart, setSwipeStart] = useState<{ r: number; c: number; x: number; y: number } | null>(null);
+  const isDraggedRef = useRef(false);
   const [shards, setShards] = useState<Shard[]>([]);
   const boardRef = useRef<HTMLDivElement>(null);
   const processedBrokenIdsRef = useRef<Set<string>>(new Set());
@@ -641,20 +642,21 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     setSwipeStart(null);
   };
 
-  // Mouse handlers for desktop dragging
+  // Mouse handlers for desktop drag-to-swap + click-to-select
   const handleMouseDown = (e: React.MouseEvent, r: number, c: number) => {
     if (isBoardLocked) return;
+    e.preventDefault(); // prevent text selection during drag
+    isDraggedRef.current = false;
     setSwipeStart({ r, c, x: e.clientX, y: e.clientY });
-    onSelectTile(r, c);
+    // NOTE: onSelectTile is NOT called here — we wait to see if it's a click or drag
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!swipeStart || isBoardLocked) return;
+    if (!swipeStart || isBoardLocked || isDraggedRef.current) return;
     const dx = e.clientX - swipeStart.x;
     const dy = e.clientY - swipeStart.y;
-    const threshold = 30;
 
-    if (Math.abs(dx) > threshold || Math.abs(dy) > threshold) {
+    if (Math.abs(dx) > 20 || Math.abs(dy) > 20) {
       let targetR = swipeStart.r;
       let targetC = swipeStart.c;
 
@@ -665,13 +667,22 @@ export const GameBoard: React.FC<GameBoardProps> = ({
       }
 
       if (targetR >= 0 && targetR < 8 && targetC >= 0 && targetC < 8) {
+        if (showWaterlineHint) dismissHint();
+        if (showValveHint) dismissValveHint();
+        isDraggedRef.current = true;
         onSwapTiles(swipeStart.r, swipeStart.c, targetR, targetC);
+        setSwipeStart(null);
       }
-      setSwipeStart(null);
     }
   };
 
   const handleMouseUp = () => {
+    // If no drag was detected, treat it as a click → use the select system
+    if (swipeStart && !isDraggedRef.current && !isBoardLocked) {
+      if (showWaterlineHint) dismissHint();
+      if (showValveHint) dismissValveHint();
+      onSelectTile(swipeStart.r, swipeStart.c);
+    }
     setSwipeStart(null);
   };
 

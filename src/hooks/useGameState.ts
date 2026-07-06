@@ -713,7 +713,7 @@ export function useGameState() {
   const resetProgress = () => {
     if (window.confirm("Are you sure you want to reset all unlocked levels and stars progress?")) {
       localStorage.removeItem('royal_rescue_unlocked_level');
-      for (let i = 1; i <= 8; i++) {
+      for (let i = 1; i <= 30; i++) {
         localStorage.removeItem(`royal_rescue_stars_level_${i}`);
       }
       setHighestLevelUnlocked(1);
