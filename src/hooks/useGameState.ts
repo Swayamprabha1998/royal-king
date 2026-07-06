@@ -14,10 +14,10 @@ import {
 import { gameAudio } from '../services/audio';
 
 export function useGameState() {
-  // Load persistent progression from localStorage
+  // Load persistent progression from localStorage (up to level 30)
   const getSavedUnlockedLevel = (): number => {
     const saved = localStorage.getItem('royal_rescue_unlocked_level');
-    return saved ? Math.min(8, Math.max(1, parseInt(saved))) : 1;
+    return saved ? Math.min(30, Math.max(1, parseInt(saved))) : 1;
   };
 
   const [currentLevelId, setCurrentLevelId] = useState<number>(1);
@@ -155,8 +155,8 @@ export function useGameState() {
 
       localStorage.setItem(`royal_rescue_stars_level_${currentLevelId}`, starsEarned.toString());
 
-      // Unlock next level
-      const nextLevel = Math.min(8, currentLevelId + 1);
+      // Unlock next level (up to level 30)
+      const nextLevel = Math.min(30, currentLevelId + 1);
       if (nextLevel > highestLevelUnlocked) {
         setHighestLevelUnlocked(nextLevel);
         localStorage.setItem('royal_rescue_unlocked_level', nextLevel.toString());
@@ -197,7 +197,9 @@ export function useGameState() {
         isValveActivated, 
         coinCountCollected,
         powerUpsToSpawn,
-        crackedIceCoords 
+        crackedIceCoords,
+        clearedAlgaeCoords,
+        clearedCursedCoords
       } = scanMatches(currentGrid);
 
       if (matches.length > 0) {
@@ -297,10 +299,16 @@ export function useGameState() {
           }, 950);
         }
 
+        let cursesTriggeredCount = 0;
+
         // Step 1: Clear matched tiles from the grid
         matches.forEach(({ r, c }) => {
           const cell = currentGrid[r][c];
           if (cell) {
+            if (cell.cursed) {
+              cursesTriggeredCount++;
+              cell.cursed = false;
+            }
             if (cell.frozen) {
               cell.frozen = false; // cracks ice block but keeps gem
             } else {
@@ -314,6 +322,47 @@ export function useGameState() {
             currentGrid[r][c]!.frozen = false;
           }
         });
+
+        clearedAlgaeCoords.forEach(({ r, c }) => {
+          if (currentGrid[r][c] && currentGrid[r][c]!.algae) {
+            currentGrid[r][c]!.algae = false;
+            anyAlgaeClearedThisTurn = true;
+          }
+        });
+
+        clearedCursedCoords.forEach(({ r, c }) => {
+          if (currentGrid[r][c] && currentGrid[r][c]!.cursed) {
+            currentGrid[r][c]!.cursed = false;
+            cursesTriggeredCount++;
+          }
+        });
+
+        // Resolve triggered curses: freeze 2 random other active gems per curse
+        if (cursesTriggeredCount > 0) {
+          for (let i = 0; i < cursesTriggeredCount * 2; i++) {
+            const candidates: { r: number; c: number }[] = [];
+            for (let cr = 0; cr < 8; cr++) {
+              for (let cc = 0; cc < 8; cc++) {
+                const targetCell = currentGrid[cr][cc];
+                if (
+                  targetCell && 
+                  !targetCell.algae && 
+                  !targetCell.frozen && 
+                  !targetCell.cursed && 
+                  targetCell.type !== 'boulder' && 
+                  targetCell.type !== 'valve' && 
+                  targetCell.type !== 'coin'
+                ) {
+                  candidates.push({ r: cr, c: cc });
+                }
+              }
+            }
+            if (candidates.length > 0) {
+              const choice = candidates[Math.floor(Math.random() * candidates.length)];
+              currentGrid[choice.r][choice.c]!.frozen = true;
+            }
+          }
+        }
 
         // Spawn newly formed blasters and bombs before gravity
         powerUpsToSpawn.forEach(p => {
@@ -535,7 +584,7 @@ export function useGameState() {
     if (isBoardLocked || gameState !== 'playing') return;
 
     const cell = grid[r][c];
-    if (!cell || cell.algae || cell.frozen) return; // cannot select locked/ice tiles
+    if (!cell || cell.algae || cell.frozen || cell.cursed) return; // cannot select locked/ice/cursed tiles
 
     if (selectedTile) {
       if (selectedTile.r === r && selectedTile.c === c) {

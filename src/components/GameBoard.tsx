@@ -447,6 +447,40 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     }
   };
 
+  const renderCursedSkullIcon = () => {
+    return (
+      <svg viewBox="0 0 40 40" className="tile-svg cursed-skull-svg gem-3d">
+        <defs>
+          <linearGradient id="cursed-skull-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#e9d5ff" />
+            <stop offset="60%" stopColor="#c084fc" />
+            <stop offset="100%" stopColor="#7e22ce" />
+          </linearGradient>
+        </defs>
+        {/* Skull head */}
+        <path d="M12,18 C12,10 16,6 20,6 C24,6 28,10 28,18 C28,24 25,26 25,29 L15,29 C15,26 12,24 12,18 Z" fill="url(#cursed-skull-grad)" stroke="#581c87" strokeWidth="1.5" />
+        {/* Jaw/teeth block */}
+        <rect x="16" y="28" width="8" height="6" rx="1" fill="url(#cursed-skull-grad)" stroke="#581c87" strokeWidth="1.5" />
+        <line x1="18.5" y1="28" x2="18.5" y2="34" stroke="#581c87" strokeWidth="1.2" />
+        <line x1="20" y1="28" x2="20" y2="34" stroke="#581c87" strokeWidth="1.2" />
+        <line x1="21.5" y1="28" x2="21.5" y2="34" stroke="#581c87" strokeWidth="1.2" />
+        {/* Eyes (dark hollows) */}
+        <ellipse cx="16.5" cy="17" rx="2.5" ry="3.5" fill="#3b0764" />
+        <ellipse cx="23.5" cy="17" rx="2.5" ry="3.5" fill="#3b0764" />
+        {/* Eyebrow frown lines */}
+        <path d="M13.5,13 L17.5,15" stroke="#581c87" strokeWidth="1.2" strokeLinecap="round" />
+        <path d="M26.5,13 L22.5,15" stroke="#581c87" strokeWidth="1.2" strokeLinecap="round" />
+        {/* Nose cavity */}
+        <polygon points="20,20 18.5,23 21.5,23" fill="#3b0764" />
+        {/* Cheekbones shading */}
+        <path d="M11.5,21 C13.5,21 14.5,23 14.5,25" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="0.8" />
+        <path d="M28.5,21 C26.5,21 25.5,23 25.5,25" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="0.8" />
+        {/* 3D highlight sheen */}
+        <path d="M14,13 A10,10 0 0,1 26,13 Z" fill="rgba(255,255,255,0.25)" />
+      </svg>
+    );
+  };
+
   // Touch handlers for mobile swiping
   const handleTouchStart = (e: React.TouchEvent, r: number, c: number) => {
     if (isBoardLocked) return;
@@ -589,6 +623,101 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 '--petal-rot':     `${(i * 43) % 360}deg`,
                 '--petal-dur':     `${4.8 + (i % 5) * 0.6}s`,
                 '--petal-size':    `${10 + (i % 3) * 3}px`,
+              } as React.CSSProperties}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Cold Theme: Falling Snowflakes Overlay */}
+      {ambientTheme === 'cold' && (
+        <div className="cold-snow-overlay" aria-hidden="true">
+          {Array.from({ length: 15 }, (_, i) => (
+            <div
+              key={i}
+              className="snowflake"
+              style={{
+                '--snow-delay':   `${-(i * 0.4)}s`,
+                '--snow-x-start': `${(i * 19 + 7) % 95}%`,
+                '--snow-drift-x': `${(i % 2 === 0 ? 1 : -1) * (12 + (i % 3) * 8)}px`,
+                '--snow-dur':     `${5.0 + (i % 4) * 0.8}s`,
+                '--snow-size':    `${4 + (i % 3) * 3}px`,
+              } as React.CSSProperties}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Dark Theme: Shadow Bubbles Rising Overlay */}
+      {ambientTheme === 'dark' && (
+        <div className="dark-shadow-overlay" aria-hidden="true">
+          {Array.from({ length: 10 }, (_, i) => (
+            <div
+              key={i}
+              className="shadow-bubble"
+              style={{
+                '--shadow-delay':   `${-(i * 0.6)}s`,
+                '--shadow-x-start': `${(i * 27 + 13) % 90}%`,
+                '--shadow-drift-x': `${(i % 2 === 0 ? -1 : 1) * (6 + (i % 3) * 5)}px`,
+                '--shadow-dur':     `${6.0 + (i % 3) * 1.0}s`,
+                '--shadow-size':    `${8 + (i % 3) * 4}px`,
+              } as React.CSSProperties}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Battle Theme: Fire Spark Embers Rising Overlay */}
+      {ambientTheme === 'battle' && (
+        <div className="battle-ember-overlay" aria-hidden="true">
+          {Array.from({ length: 12 }, (_, i) => (
+            <div
+              key={i}
+              className="battle-ember"
+              style={{
+                '--ember-delay':   `${-(i * 0.45)}s`,
+                '--ember-x-start': `${(i * 23 + 9) % 92}%`,
+                '--ember-drift-x': `${(i % 2 === 0 ? 1 : -1) * (15 + (i % 4) * 6)}px`,
+                '--ember-dur':     `${4.2 + (i % 3) * 0.7}s`,
+                '--ember-size':    `${3 + (i % 3) * 2}px`,
+              } as React.CSSProperties}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Ethereal Theme: Stardust Particles Floating Overlay */}
+      {ambientTheme === 'ethereal' && (
+        <div className="ethereal-stardust-overlay" aria-hidden="true">
+          {Array.from({ length: 16 }, (_, i) => (
+            <div
+              key={i}
+              className="stardust-sparkle"
+              style={{
+                '--sparkle-delay':   `${-(i * 0.5)}s`,
+                '--sparkle-x-start': `${(i * 17 + 11) % 94}%`,
+                '--sparkle-drift-x': `${(i % 2 === 0 ? -1 : 1) * (10 + (i % 3) * 7)}px`,
+                '--sparkle-dur':     `${5.5 + (i % 4) * 0.8}s`,
+                '--sparkle-size':    `${4 + (i % 3) * 2}px`,
+              } as React.CSSProperties}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Warm Theme: Subtle Golden Embers Overlay */}
+      {ambientTheme === 'warm' && (
+        <div className="warm-ember-overlay" aria-hidden="true">
+          {Array.from({ length: 8 }, (_, i) => (
+            <div
+              key={i}
+              className="warm-ember"
+              style={{
+                '--warm-delay':   `${-(i * 0.8)}s`,
+                '--warm-x-start': `${(i * 31 + 5) % 88}%`,
+                '--warm-drift-x': `${(i % 2 === 0 ? 1 : -1) * (8 + (i % 3) * 4)}px`,
+                '--warm-dur':     `${7.0 + (i % 3) * 1.2}s`,
+                '--warm-size':    `${3 + (i % 3) * 2}px`,
               } as React.CSSProperties}
             />
           ))}
@@ -765,8 +894,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 onMouseDown={(e) => handleMouseDown(e, r, c)}
                 onTouchStart={(e) => handleTouchStart(e, r, c)}
               >
-                <div className={cell.powerUp ? `tile-icon-container powerup-tile powerup-tile--${cell.powerUp}` : `tile-icon-container ${cell.type}`}>
-                  {cell.powerUp ? renderPowerUpIcon(cell.powerUp) : renderTileIcon(cell.type)}
+                <div className={cell.cursed ? 'tile-icon-container cursed-skull-tile' : cell.powerUp ? `tile-icon-container powerup-tile powerup-tile--${cell.powerUp}` : `tile-icon-container ${cell.type}`}>
+                  {cell.cursed ? renderCursedSkullIcon() : cell.powerUp ? renderPowerUpIcon(cell.powerUp) : renderTileIcon(cell.type)}
                 </div>
 
                 {/* Ice wrapper blocks — Icicle Drip style */}
@@ -803,6 +932,11 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                       <rect x="4" y="4" width="44" height="4" rx="2" fill="rgba(255,255,255,0.28)"/>
                     </svg>
                   </div>
+                )}
+
+                {/* Cursed wrapper block — dark crackle overlay */}
+                {cell.cursed && (
+                  <div className="tile-cursed-crackle" />
                 )}
               </div>
             );

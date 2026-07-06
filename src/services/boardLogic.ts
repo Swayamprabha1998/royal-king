@@ -14,6 +14,7 @@ export interface CellState {
   type: TileType;  // Active tile type
   algae: boolean;  // Lock blocker (cannot swap tile, must match next to it)
   frozen?: boolean; // Ice blocker (cannot swap tile, match adjacent/directly to crack)
+  cursed?: boolean; // Cursed blocker (cannot swap tile, match adjacent, clear freezes 2 random gems)
   powerUp?: 'blast_row' | 'blast_col' | 'bomb' | 'lightning'; // Special items
   isNew?: boolean; // Highlight flag
 }
@@ -31,6 +32,8 @@ export interface LevelConfig {
   hasValves: boolean;
   algaeCount: number;
   frozenCount?: number;      // Number of frozen gem tiles to inject
+  hasCursed?: boolean;       // Support for cursed tiles
+  cursedCount?: number;      // Number of cursed tiles to inject
   tutorialText: string[];
 }
 
@@ -161,16 +164,18 @@ export const LEVELS: Record<number, LevelConfig> = {
   9: {
     id: 9,
     name: 'The First Dance Gazebo',
-    targetCoins: 34,
+    targetCoins: 36,
     initialWaterLevel: 3,
     waterRiseRate: 3.8,
     movesLimit: 25,
     hasAlgae: true,
     hasValves: true,
     algaeCount: 11,
+    hasCursed: true,
+    cursedCount: 6,
     tutorialText: [
       "The ivy has gone dark — it spreads with each move you don't clear it. Watch it grow and cut it back before it fills the gazebo.",
-      "Spin the golden valves to drain the flood and keep the dance floor alive. The music is still here if you listen."
+      "Cursed Tiles are active! Marked with dark energy, you cannot swap them. Match beside to clear them, but beware: clearing a cursed tile instantly freezes two other gems on the board!"
     ]
   },
 
@@ -554,7 +559,8 @@ export function createInitialBoard(level: LevelConfig): GridState {
       grid[r][c] = {
         id: generateUniqueId(),
         type: getRandomTileType(excluded),
-        algae: false
+        algae: false,
+        cursed: false
       };
     }
   }
@@ -581,6 +587,19 @@ export function createInitialBoard(level: LevelConfig): GridState {
       if (grid[r][c] && !grid[r][c]!.algae && !grid[r][c]!.frozen) {
         grid[r][c]!.frozen = true;
         icePlaced++;
+      }
+    }
+  }
+
+  // Step 3.5: Inject Cursed tiles (driven by cursedCount field)
+  if (level.hasCursed && level.cursedCount && level.cursedCount > 0) {
+    let cursedPlaced = 0;
+    while (cursedPlaced < level.cursedCount) {
+      const r = Math.floor(Math.random() * 4) + 2;
+      const c = Math.floor(Math.random() * 8);
+      if (grid[r][c] && !grid[r][c]!.algae && !grid[r][c]!.frozen && !grid[r][c]!.cursed) {
+        grid[r][c]!.cursed = true;
+        cursedPlaced++;
       }
     }
   }
@@ -638,6 +657,8 @@ export function scanMatches(grid: GridState): {
   coinCountCollected: number;
   powerUpsToSpawn: PowerUpSpawn[];
   crackedIceCoords: { r: number; c: number }[];
+  clearedAlgaeCoords: { r: number; c: number }[];
+  clearedCursedCoords: { r: number; c: number }[];
 } {
   const rows = 8;
   const cols = 8;
@@ -649,6 +670,8 @@ export function scanMatches(grid: GridState): {
   let coinCountCollected = 0;
   const powerUpsToSpawn: PowerUpSpawn[] = [];
   const crackedIceCoords: { r: number; c: number }[] = [];
+  const clearedAlgaeCoords: { r: number; c: number }[] = [];
+  const clearedCursedCoords: { r: number; c: number }[] = [];
 
   // Helper to check if tile is matchable (boulders are not matchable!)
   const isMatchable = (r: number, c: number) => {
@@ -862,6 +885,16 @@ export function scanMatches(grid: GridState): {
       if (cell.frozen && (matchMask[r][c] || adjacentToMatch(r, c))) {
         crackedIceCoords.push({ r, c });
       }
+
+      // Match next to or on Algae clears the algae lock
+      if (cell.algae && (matchMask[r][c] || adjacentToMatch(r, c))) {
+        clearedAlgaeCoords.push({ r, c });
+      }
+
+      // Match next to or on Cursed Gem clears the curse
+      if (cell.cursed && (matchMask[r][c] || adjacentToMatch(r, c))) {
+        clearedCursedCoords.push({ r, c });
+      }
     }
   }
 
@@ -870,7 +903,9 @@ export function scanMatches(grid: GridState): {
     isValveActivated,
     coinCountCollected,
     powerUpsToSpawn,
-    crackedIceCoords
+    crackedIceCoords,
+    clearedAlgaeCoords,
+    clearedCursedCoords
   };
 }
 
@@ -887,7 +922,7 @@ export function swapTiles(grid: GridState, r1: number, c1: number, r2: number, c
   if (!cell1 || !cell2) return null;
 
   // Locked blocks cannot be manually swapped!
-  if (cell1.algae || cell2.algae || cell1.frozen || cell2.frozen) return null;
+  if (cell1.algae || cell2.algae || cell1.frozen || cell2.frozen || cell1.cursed || cell2.cursed) return null;
 
   const newGrid = grid.map(row => [...row]);
   newGrid[r1][c1] = cell2;
@@ -940,7 +975,7 @@ export function applyBuoyancyAndGravity(grid: GridState, waterLevelRow: number, 
 
       for (let r = 0; r < waterLevelRow; r++) {
         const cell = newGrid[r][c];
-        if (cell && cell.algae) {
+        if (cell && (cell.algae || cell.cursed)) {
           algaeRows.add(r); // fixed — never moved
         } else if (cell) {
           freeTiles.push(cell); // moveable tile
@@ -975,7 +1010,7 @@ export function applyBuoyancyAndGravity(grid: GridState, waterLevelRow: number, 
 
       for (let r = waterLevelRow; r < rows; r++) {
         const cell = newGrid[r][c];
-        if (cell && cell.algae) {
+        if (cell && (cell.algae || cell.cursed)) {
           algaeRows.add(r); // fixed
         } else if (cell) {
           if (cell.type === 'boulder') {

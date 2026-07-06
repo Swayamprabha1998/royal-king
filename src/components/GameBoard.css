@@ -330,6 +330,183 @@
   }
 }
 
+/* ── Snowflakes falling (Cold Theme) ── */
+.cold-snow-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 12;
+  overflow: hidden;
+}
+
+.snowflake {
+  position: absolute;
+  top: -10px;
+  left: var(--snow-x-start, 50%);
+  width: var(--snow-size, 6px);
+  height: var(--snow-size, 6px);
+  background: white;
+  border-radius: 50%;
+  opacity: 0;
+  box-shadow: 0 0 4px rgba(255, 255, 255, 0.8);
+  animation: snow-fall var(--snow-dur, 5s) linear var(--snow-delay, 0s) infinite;
+}
+
+@keyframes snow-fall {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% { opacity: 0.85; }
+  90% { opacity: 0.85; }
+  100% {
+    transform: translateY(560px) translateX(var(--snow-drift-x, 15px));
+    opacity: 0;
+  }
+}
+
+/* ── Shadow bubbles rising (Dark Theme) ── */
+.dark-shadow-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 12;
+  overflow: hidden;
+}
+
+.shadow-bubble {
+  position: absolute;
+  bottom: -20px;
+  left: var(--shadow-x-start, 50%);
+  width: var(--shadow-size, 10px);
+  height: var(--shadow-size, 10px);
+  background: radial-gradient(circle, rgba(93, 35, 158, 0.45) 0%, rgba(20, 10, 40, 0) 70%);
+  border: 1px solid rgba(130, 80, 220, 0.15);
+  border-radius: 50%;
+  opacity: 0;
+  filter: blur(1px);
+  animation: shadow-rise var(--shadow-dur, 6s) ease-in-out var(--shadow-delay, 0s) infinite;
+}
+
+@keyframes shadow-rise {
+  0% {
+    transform: translateY(0) translateX(0) scale(0.8);
+    opacity: 0;
+  }
+  15% { opacity: 0.7; }
+  85% { opacity: 0.5; }
+  100% {
+    transform: translateY(-560px) translateX(var(--shadow-drift-x, -20px)) scale(1.3);
+    opacity: 0;
+  }
+}
+
+/* ── Fire embers rising (Battle Theme) ── */
+.battle-ember-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 12;
+  overflow: hidden;
+}
+
+.battle-ember {
+  position: absolute;
+  bottom: -10px;
+  left: var(--ember-x-start, 50%);
+  width: var(--ember-size, 4px);
+  height: var(--ember-size, 4px);
+  background: radial-gradient(circle at center, #ffd080 0%, #ff4500 80%);
+  border-radius: 50%;
+  opacity: 0;
+  box-shadow: 0 0 6px rgba(255, 69, 0, 0.9), 0 0 12px rgba(255, 165, 0, 0.4);
+  animation: ember-rise var(--ember-dur, 4.5s) ease-out var(--ember-delay, 0s) infinite;
+}
+
+@keyframes ember-rise {
+  0% {
+    transform: translateY(0) translateX(0) scale(0.6);
+    opacity: 0;
+  }
+  10% { opacity: 0.95; }
+  80% { opacity: 0.85; }
+  100% {
+    transform: translateY(-560px) translateX(var(--ember-drift-x, 25px)) scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* ── Stardust sparkles (Ethereal Theme) ── */
+.ethereal-stardust-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 12;
+  overflow: hidden;
+}
+
+.stardust-sparkle {
+  position: absolute;
+  top: var(--sparkle-y-start, 100%);
+  bottom: -10px;
+  left: var(--sparkle-x-start, 50%);
+  width: var(--sparkle-size, 5px);
+  height: var(--sparkle-size, 5px);
+  background: radial-gradient(circle, #e6fffa 0%, #14b8a6 80%);
+  border-radius: 50%;
+  opacity: 0;
+  box-shadow: 0 0 6px rgba(20, 184, 166, 0.9);
+  animation: sparkle-drift var(--sparkle-dur, 6s) ease-in-out var(--sparkle-delay, 0s) infinite;
+}
+
+@keyframes sparkle-drift {
+  0% {
+    transform: translateY(0) translateX(0) scale(0.6);
+    opacity: 0;
+  }
+  15% { opacity: 0.9; }
+  85% { opacity: 0.8; }
+  100% {
+    transform: translateY(-560px) translateX(var(--sparkle-drift-x, -30px)) scale(1.4);
+    opacity: 0;
+  }
+}
+
+/* ── Warm embers rising (Warm Theme) ── */
+.warm-ember-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 12;
+  overflow: hidden;
+}
+
+.warm-ember {
+  position: absolute;
+  bottom: -10px;
+  left: var(--warm-x-start, 50%);
+  width: var(--warm-size, 4px);
+  height: var(--warm-size, 4px);
+  background: radial-gradient(circle at center, #fffbeb 0%, #d97706 80%);
+  border-radius: 50%;
+  opacity: 0;
+  box-shadow: 0 0 5px rgba(217, 119, 6, 0.7);
+  animation: warm-rise var(--warm-dur, 7s) ease-in-out var(--warm-delay, 0s) infinite;
+}
+
+@keyframes warm-rise {
+  0% {
+    transform: translateY(0) translateX(0) scale(0.8);
+    opacity: 0;
+  }
+  15% { opacity: 0.8; }
+  85% { opacity: 0.6; }
+  100% {
+    transform: translateY(-560px) translateX(var(--warm-drift-x, 15px)) scale(1.1);
+    opacity: 0;
+  }
+}
+
 .svg-defs-hidden {
   position: absolute;
   width: 0;
@@ -1570,4 +1747,52 @@
   35%  { transform: translate(-50%, -50%) scale(1); }
   75%  { opacity: 1; }
   100% { opacity: 0; transform: translate(-50%, -80%) scale(0.9); }
+}
+
+/* ── Cursed Tile Crackle Overlay ── */
+.tile-cursed-crackle {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  z-index: 10;
+  pointer-events: none;
+  border-radius: 9px;
+  border: 2px dashed rgba(168, 85, 247, 0.85);
+  box-shadow: inset 0 0 10px rgba(126, 34, 206, 0.6), 0 0 8px rgba(147, 51, 234, 0.4);
+  animation: cursed-pulse 1.8s ease-in-out infinite alternate;
+}
+
+.tile-cursed-crackle::before {
+  content: '☠';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 10px;
+  color: rgba(216, 180, 254, 0.85);
+  text-shadow: 0 0 4px rgba(147, 51, 234, 0.9);
+  animation: cursed-skull-shiver 0.3s ease-in-out infinite alternate;
+}
+
+.tile-cursed-crackle::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 12px;
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  filter: blur(1px);
+}
+
+@keyframes cursed-pulse {
+  0% {
+    border-color: rgba(147, 51, 234, 0.6);
+    box-shadow: inset 0 0 6px rgba(126, 34, 206, 0.4), 0 0 4px rgba(147, 51, 234, 0.2);
+  }
+  100% {
+    border-color: rgba(216, 180, 254, 1.0);
+    box-shadow: inset 0 0 14px rgba(126, 34, 206, 0.85), 0 0 12px rgba(168, 85, 247, 0.6);
+  }
+}
+
+@keyframes cursed-skull-shiver {
+  0% { transform: translate(-0.5px, -0.5px) rotate(-3deg); }
+  100% { transform: translate(0.5px, 0.5px) rotate(3deg); }
 }
