@@ -176,6 +176,10 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     }
   }
 
+  useEffect(() => {
+    setShards([]);
+  }, [levelId]);
+
   // 1. Matched jewels breaking particles logic (fires on initial swaps & cascade matches)
   useEffect(() => {
     if (!brokenTiles || brokenTiles.length === 0) return;

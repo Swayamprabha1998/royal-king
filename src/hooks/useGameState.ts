@@ -112,6 +112,9 @@ export function useGameState() {
     setScore(0);
     setSelectedTile(null);
     setIsBoardLocked(false);
+    setBrokenTiles([]);
+    setFiredPowerUps([]);
+    setFloatingCoins([]);
 
     const initialGrid = createInitialBoard(config);
     setGrid(initialGrid);
@@ -191,7 +194,13 @@ export function useGameState() {
     let totalScoreThisTurn = 0;
     let totalWaterDrainThisTurn = 0;
 
+    let cascadeSafetyCounter = 0;
     while (keepResolving) {
+      cascadeSafetyCounter++;
+      if (cascadeSafetyCounter > 100) {
+        console.error("Cascade safety threshold exceeded! Breaking loop.");
+        break;
+      }
       const { 
         matches, 
         isValveActivated, 

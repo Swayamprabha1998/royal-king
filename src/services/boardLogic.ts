@@ -580,17 +580,24 @@ export const LEVELS: Record<number, LevelConfig> = {
   30: {
     id: 30,
     name: 'The Awakening',
-    targetCoins: 60,
+    targetCoins: 70,
     initialWaterLevel: 2,
     waterRiseRate: 5.8,
-    movesLimit: 26,
+    movesLimit: 19,
     hasAlgae: true,
-    hasValves: true,
-    algaeCount: 16,
-    frozenCount: 16,
+    hasValves: false,
+    algaeCount: 12,
+    frozenCount: 12,
+    hasCursed: true,
+    cursedCount: 4,
+    hasShadowVault: true,
+    shadowVaultCount: 4,
+    hasDarkValves: true,
+    darkValvesCount: 4,
+    hasChainBreaker: true,
     tutorialText: [
-      "One board. One seal. Every level, every memory, every whispered word has led to this.",
-      "Drain the last of the water. Place your hand on the seal. Open her eyes."
+      "This is the final seal. The Queen's awakening. Leaking Dark Valves, cursed skulls, shadow vaults, ice, and algae stand between you and the Queen.",
+      "Shatter the final seal, gather 70 coins, drain the flood, and awaken the Queen!"
     ]
   }
 };
@@ -637,8 +644,10 @@ export function createInitialBoard(level: LevelConfig): GridState {
   // Step 2: Inject Level Obstacles (Algae)
   if (level.hasAlgae) {
     let algaePlaced = 0;
-    while (algaePlaced < level.algaeCount) {
-      const r = Math.floor(Math.random() * 5) + 2; // Rows 2 to 6
+    let safety = 0;
+    while (algaePlaced < level.algaeCount && safety < 1000) {
+      safety++;
+      const r = Math.floor(Math.random() * 6) + 1; // Rows 1 to 6 (wider range)
       const c = Math.floor(Math.random() * 8);
       if (grid[r][c] && !grid[r][c]!.algae) {
         grid[r][c]!.algae = true;
@@ -650,9 +659,11 @@ export function createInitialBoard(level: LevelConfig): GridState {
   // Step 3: Inject Frozen Ice wrappers (driven by frozenCount field)
   if (level.frozenCount && level.frozenCount > 0) {
     let icePlaced = 0;
-    while (icePlaced < level.frozenCount) {
-      const r = Math.floor(Math.random() * 4) + 2;
-      const c = Math.floor(Math.random() * 6) + 1;
+    let safety = 0;
+    while (icePlaced < level.frozenCount && safety < 1000) {
+      safety++;
+      const r = Math.floor(Math.random() * 6) + 1; // Rows 1 to 6
+      const c = Math.floor(Math.random() * 8);
       if (grid[r][c] && !grid[r][c]!.algae && !grid[r][c]!.frozen) {
         grid[r][c]!.frozen = true;
         icePlaced++;
@@ -663,8 +674,10 @@ export function createInitialBoard(level: LevelConfig): GridState {
   // Step 3.5: Inject Cursed tiles (driven by cursedCount field)
   if (level.hasCursed && level.cursedCount && level.cursedCount > 0) {
     let cursedPlaced = 0;
-    while (cursedPlaced < level.cursedCount) {
-      const r = Math.floor(Math.random() * 4) + 2;
+    let safety = 0;
+    while (cursedPlaced < level.cursedCount && safety < 1000) {
+      safety++;
+      const r = Math.floor(Math.random() * 6) + 1; // Rows 1 to 6
       const c = Math.floor(Math.random() * 8);
       if (grid[r][c] && !grid[r][c]!.algae && !grid[r][c]!.frozen && !grid[r][c]!.cursed) {
         grid[r][c]!.cursed = true;
@@ -676,11 +689,13 @@ export function createInitialBoard(level: LevelConfig): GridState {
   // Step 3.8: Inject Shadow Vaults (driven by shadowVaultCount field)
   if (level.hasShadowVault && level.shadowVaultCount && level.shadowVaultCount > 0) {
     let vaultsPlaced = 0;
-    while (vaultsPlaced < level.shadowVaultCount) {
-      const r = Math.floor(Math.random() * 4) + 2;
+    let safety = 0;
+    while (vaultsPlaced < level.shadowVaultCount && safety < 1000) {
+      safety++;
+      const r = Math.floor(Math.random() * 6) + 1; // Rows 1 to 6
       const c = Math.floor(Math.random() * 8);
       const cell = grid[r][c];
-      if (cell && !cell.algae && !cell.frozen && !cell.cursed && !cell.shadowVault) {
+      if (cell && !cell.algae && !cell.frozen && !cell.cursed && !cell.shadowVault && cell.type !== 'boulder' && cell.type !== 'valve' && cell.type !== 'dark_valve') {
         cell.shadowVault = 2; // Full health (2 hits)
         vaultsPlaced++;
       }
@@ -691,10 +706,12 @@ export function createInitialBoard(level: LevelConfig): GridState {
   if (level.id === 6 || level.id === 8) {
     let bouldersPlaced = 0;
     const targetBoulders = level.id === 8 ? 4 : 6;
-    while (bouldersPlaced < targetBoulders) {
+    let safety = 0;
+    while (bouldersPlaced < targetBoulders && safety < 1000) {
+      safety++;
       const r = Math.floor(Math.random() * 3) + 4; // Bottom rows mostly
       const c = Math.floor(Math.random() * 8);
-      if (grid[r][c] && !grid[r][c]!.algae && !grid[r][c]!.frozen && grid[r][c]!.type !== 'boulder') {
+      if (grid[r][c] && !grid[r][c]!.algae && !grid[r][c]!.frozen && grid[r][c]!.type !== 'boulder' && !grid[r][c]!.cursed && !grid[r][c]!.shadowVault && grid[r][c]!.type !== 'valve' && grid[r][c]!.type !== 'dark_valve') {
         grid[r][c]!.type = 'boulder';
         bouldersPlaced++;
       }
@@ -703,12 +720,17 @@ export function createInitialBoard(level: LevelConfig): GridState {
 
   // Step 5: Inject initial special items (Valves and Coins)
   if (level.hasValves) {
+    let safety = 0;
     for (let i = 0; i < 2; i++) {
-      const r = Math.floor(Math.random() * 4) + 2;
-      const c = Math.floor(Math.random() * 8);
-      const cell = grid[r][c];
-      if (cell && !cell.algae && !cell.frozen && cell.type !== 'boulder' && cell.type !== 'valve') {
-        cell.type = 'valve';
+      while (safety < 100) {
+        safety++;
+        const r = Math.floor(Math.random() * 4) + 2;
+        const c = Math.floor(Math.random() * 8);
+        const cell = grid[r][c];
+        if (cell && !cell.algae && !cell.frozen && !cell.cursed && !cell.shadowVault && cell.type !== 'boulder' && cell.type !== 'valve' && cell.type !== 'dark_valve') {
+          cell.type = 'valve';
+          break;
+        }
       }
     }
   }
@@ -716,8 +738,10 @@ export function createInitialBoard(level: LevelConfig): GridState {
   // Step 5.2: Inject Dark Valves (driven by darkValvesCount field)
   if (level.hasDarkValves && level.darkValvesCount && level.darkValvesCount > 0) {
     let darkValvesPlaced = 0;
-    while (darkValvesPlaced < level.darkValvesCount) {
-      const r = Math.floor(Math.random() * 4) + 2;
+    let safety = 0;
+    while (darkValvesPlaced < level.darkValvesCount && safety < 1000) {
+      safety++;
+      const r = Math.floor(Math.random() * 6) + 1; // Rows 1 to 6
       const c = Math.floor(Math.random() * 8);
       const cell = grid[r][c];
       if (cell && !cell.algae && !cell.frozen && !cell.cursed && !cell.shadowVault && cell.type !== 'boulder' && cell.type !== 'valve' && cell.type !== 'dark_valve') {
@@ -742,7 +766,9 @@ export function createInitialBoard(level: LevelConfig): GridState {
   // Step 6: Inject initial Chain Breaker powerups
   if (level.hasChainBreaker) {
     let placed = 0;
-    while (placed < 2) {
+    let safety = 0;
+    while (placed < 2 && safety < 1000) {
+      safety++;
       const r = Math.floor(Math.random() * 4) + 2;
       const c = Math.floor(Math.random() * 8);
       const cell = grid[r][c];
