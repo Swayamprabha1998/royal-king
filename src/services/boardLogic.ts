@@ -520,49 +520,61 @@ export const LEVELS: Record<number, LevelConfig> = {
   27: {
     id: 27,
     name: 'Her Voice Returns',
-    targetCoins: 48,
+    targetCoins: 58,
     initialWaterLevel: 3,
     waterRiseRate: 5.0,
     movesLimit: 25,
     hasAlgae: true,
-    hasValves: true,
-    algaeCount: 12,
-    frozenCount: 14,
+    hasValves: false,
+    algaeCount: 10,
+    frozenCount: 10,
+    hasDarkValves: true,
+    darkValvesCount: 4,
     tutorialText: [
-      "Her voice is clear for the first time — not a whisper, but certain and close. The board shakes with the weight of her presence.",
-      "Keep matching. Keep draining. She is waiting at the final door."
+      "Her voice is clear for the first time — not a whisper, but certain and close. But the sorcerer's Dark Valves leak even inside the Deep Dream.",
+      "Shatter the valves and collect 58 coins before the arena floods!"
     ]
   },
   28: {
     id: 28,
     name: 'The Weaving of Memories',
-    targetCoins: 52,
+    targetCoins: 60,
     initialWaterLevel: 3,
     waterRiseRate: 5.2,
     movesLimit: 25,
     hasAlgae: true,
-    hasValves: true,
-    algaeCount: 14,
-    frozenCount: 14,
+    hasValves: false,
+    algaeCount: 10,
+    frozenCount: 10,
+    hasCursed: true,
+    cursedCount: 4,
+    hasShadowVault: true,
+    shadowVaultCount: 4,
+    hasChainBreaker: true,
     tutorialText: [
-      "All her memories converge here — rose garden, frozen ship, battle, golden cellars — woven into one vast, flooding board.",
-      "Every obstacle you have faced returns. Honour each one. This is her entire life."
+      "All her memories weave together here. Cursed skulls, shadow vaults, algae, and ice cover the grid.",
+      "Unlock the Chain Breakers, clear the curses, shatter the vaults, and collect 60 coins to win!"
     ]
   },
   29: {
     id: 29,
     name: "The Sorcerer's Last Hold",
-    targetCoins: 56,
+    targetCoins: 64,
     initialWaterLevel: 3,
     waterRiseRate: 5.5,
     movesLimit: 24,
     hasAlgae: true,
-    hasValves: true,
-    algaeCount: 16,
-    frozenCount: 16,
+    hasValves: false,
+    algaeCount: 10,
+    frozenCount: 10,
+    hasDarkValves: true,
+    darkValvesCount: 4,
+    hasShadowVault: true,
+    shadowVaultCount: 4,
+    hasChainBreaker: true,
     tutorialText: [
-      "The sorcerer's final trap — every obstacle at maximum, water rising faster than it ever has. He built this to stop you.",
-      "You have walked through every room in his hell. Break the last block. The final seal is waiting."
+      "The sorcerer's final trap — leaking Dark Valves and shadow vaults block your path to the last seal.",
+      "Clear the obstacles, break the vaults, shut down the leaks, and collect 64 coins to break through!"
     ]
   },
   30: {

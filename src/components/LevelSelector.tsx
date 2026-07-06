@@ -231,7 +231,7 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
 
                         {/* Tooltip on hover */}
                         {!isLocked && isHovered && (
-                          <div className="sb-tooltip" style={{ borderColor: theme.colBorder }}>
+                          <div className={`sb-tooltip ${ch.chapterNumber >= 5 ? 'tooltip-left' : ''}`} style={{ borderColor: theme.colBorder }}>
                             <div className="sb-tooltip-title" style={{ color: theme.textDark }}>{lv.title}</div>
                             <div className="sb-tooltip-detail" style={{ color: theme.accent }}>
                               {isCurrent && isPlayable ? '▶ Tap to play'

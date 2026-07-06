@@ -316,6 +316,11 @@
   white-space: nowrap;
 }
 
+.sb-tooltip.tooltip-left {
+  left: auto;
+  right: calc(100% + 10px);
+}
+
 .sb-tooltip-title {
   font-size: 11px;
   font-weight: 700;
