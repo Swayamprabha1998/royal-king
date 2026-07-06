@@ -232,8 +232,36 @@ export const GameBoard: React.FC<GameBoardProps> = ({
   }, [brokenTiles]);
 
   // Render full-size SVG icon for power-up tiles
-  const renderPowerUpIcon = (powerUp: 'blast_row' | 'blast_col' | 'bomb' | 'lightning') => {
+  const renderPowerUpIcon = (powerUp: 'blast_row' | 'blast_col' | 'bomb' | 'lightning' | 'chain_breaker') => {
     switch (powerUp) {
+      case 'chain_breaker':
+        return (
+          <svg viewBox="0 0 40 40" className="tile-svg powerup-icon-svg chain-breaker-icon">
+            <defs>
+              <linearGradient id="chain-breaker-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#e0f2fe" />
+                <stop offset="50%" stopColor="#38bdf8" />
+                <stop offset="100%" stopColor="#0284c7" />
+              </linearGradient>
+              <filter id="ice-glow">
+                <feGaussianBlur stdDeviation="1" result="blur" />
+                <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+              </filter>
+            </defs>
+            {/* Shimmer backing */}
+            <circle cx="20" cy="20" r="15" fill="rgba(56,189,248,0.22)" />
+            {/* Ice crystal star shape */}
+            <path
+              d="M20,4 L23,15 L34,12 L26,20 L34,28 L23,25 L20,36 L17,25 L6,28 L14,20 L6,12 L17,15 Z"
+              fill="url(#chain-breaker-grad)"
+              stroke="#0369a1"
+              strokeWidth="1.2"
+              filter="url(#ice-glow)"
+            />
+            {/* Inner lightning/spark center */}
+            <polygon points="21,11 15,22 20,22 19,29 25,18 20,18" fill="#ffffff" />
+          </svg>
+        );
       case 'lightning':
         return (
           <svg viewBox="0 0 40 40" className="tile-svg powerup-icon-svg">

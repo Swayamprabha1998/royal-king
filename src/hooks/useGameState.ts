@@ -35,7 +35,7 @@ export function useGameState() {
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
   const [floatingCoins, setFloatingCoins] = useState<{ id: string; r: number; c: number; value: number }[]>([]);
   const [brokenTiles, setBrokenTiles] = useState<{ id: string; r: number; c: number; type: TileType }[]>([]);
-  const [firedPowerUps, setFiredPowerUps] = useState<{ id: string; r: number; c: number; type: 'blast_row' | 'blast_col' | 'bomb' | 'lightning' }[]>([]);
+  const [firedPowerUps, setFiredPowerUps] = useState<{ id: string; r: number; c: number; type: 'blast_row' | 'blast_col' | 'bomb' | 'lightning' | 'chain_breaker' }[]>([]);
   const [firedValveDrain, setFiredValveDrain] = useState<string[]>([]);
 
   // All-algae-cleared bonus (L8 — The Vow Stone)
@@ -291,7 +291,7 @@ export function useGameState() {
         if (fired.length > 0) {
           setFiredPowerUps(prev => [...prev, ...fired]);
           fired.forEach(f => {
-            if (f.type === 'lightning')  gameAudio.playLightning();
+            if (f.type === 'lightning' || f.type === 'chain_breaker')  gameAudio.playLightning();
             else if (f.type === 'blast_row') gameAudio.playBlastRow();
             else if (f.type === 'blast_col') gameAudio.playBlastCol();
             else if (f.type === 'bomb')  gameAudio.playBomb();

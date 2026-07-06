@@ -15,7 +15,7 @@ export interface CellState {
   algae: boolean;  // Lock blocker (cannot swap tile, must match next to it)
   frozen?: boolean; // Ice blocker (cannot swap tile, match adjacent/directly to crack)
   cursed?: boolean; // Cursed blocker (cannot swap tile, match adjacent, clear freezes 2 random gems)
-  powerUp?: 'blast_row' | 'blast_col' | 'bomb' | 'lightning'; // Special items
+  powerUp?: 'blast_row' | 'blast_col' | 'bomb' | 'lightning' | 'chain_breaker'; // Special items
   isNew?: boolean; // Highlight flag
 }
 
@@ -34,6 +34,7 @@ export interface LevelConfig {
   frozenCount?: number;      // Number of frozen gem tiles to inject
   hasCursed?: boolean;       // Support for cursed tiles
   cursedCount?: number;      // Number of cursed tiles to inject
+  hasChainBreaker?: boolean; // Support for chain breaker powerups
   tutorialText: string[];
 }
 
@@ -237,17 +238,18 @@ export const LEVELS: Record<number, LevelConfig> = {
   13: {
     id: 13,
     name: 'The Ice Storm',
-    targetCoins: 37,
+    targetCoins: 42,
     initialWaterLevel: 3,
     waterRiseRate: 3.8,
-    movesLimit: 26,
+    movesLimit: 25,
     hasAlgae: true,
     hasValves: true,
     algaeCount: 5,
     frozenCount: 12,
+    hasChainBreaker: true,
     tutorialText: [
-      "The storm hits — ice and dark algae together for the first time. Both lock gems in place by different means.",
-      "Algae must be matched beside. Ice must be matched beside. Neither can be swapped directly. Clear both and keep the ship above water."
+      "The storm hits! Cracking 3 or more ice blocks in a single move spawns a Chain Breaker power-up.",
+      "Activate the Chain Breaker to instantly shatter ALL frozen blocks on the board! Use it to survive the flood."
     ]
   },
   14: {
@@ -644,6 +646,20 @@ export function createInitialBoard(level: LevelConfig): GridState {
     }
   }
 
+  // Step 6: Inject initial Chain Breaker powerups
+  if (level.hasChainBreaker) {
+    let placed = 0;
+    while (placed < 2) {
+      const r = Math.floor(Math.random() * 4) + 2;
+      const c = Math.floor(Math.random() * 8);
+      const cell = grid[r][c];
+      if (cell && !cell.algae && !cell.frozen && cell.type !== 'boulder' && cell.type !== 'valve' && cell.type !== 'coin' && !cell.powerUp) {
+        cell.powerUp = 'chain_breaker';
+        placed++;
+      }
+    }
+  }
+
   return grid;
 }
 
@@ -651,7 +667,7 @@ export interface PowerUpSpawn {
   r: number;
   c: number;
   type: TileType;
-  powerUp: 'blast_row' | 'blast_col' | 'bomb' | 'lightning';
+  powerUp: 'blast_row' | 'blast_col' | 'bomb' | 'lightning' | 'chain_breaker';
 }
 
 // Scans grid for match-3s and handles blaster/bomb special creations, adjacent collections, and algae clears.
@@ -829,6 +845,16 @@ export function scanMatches(grid: GridState): {
                 }
               }
             }
+          } else if (power === 'chain_breaker') {
+            // Shatter ALL frozen tiles on the board instantly!
+            for (let ir = 0; ir < rows; ir++) {
+              for (let ic = 0; ic < cols; ic++) {
+                if (grid[ir][ic]?.frozen) {
+                  matchMask[ir][ic] = true;
+                  crackedIceCoords.push({ r: ir, c: ic });
+                }
+              }
+            }
           }
         }
       }
@@ -899,6 +925,19 @@ export function scanMatches(grid: GridState): {
       if (cell.cursed && (matchMask[r][c] || adjacentToMatch(r, c))) {
         clearedCursedCoords.push({ r, c });
       }
+    }
+  }
+
+  if (crackedIceCoords.length >= 3) {
+    const firstIce = crackedIceCoords[0];
+    const alreadySpawning = powerUpsToSpawn.some(p => p.r === firstIce.r && p.c === firstIce.c);
+    if (!alreadySpawning) {
+      powerUpsToSpawn.push({
+        r: firstIce.r,
+        c: firstIce.c,
+        type: grid[firstIce.r][firstIce.c]?.type || 'ruby',
+        powerUp: 'chain_breaker'
+      });
     }
   }
 
