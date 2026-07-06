@@ -65,6 +65,20 @@ export const saveLevelProgress = async (
   }
 };
 
+// ── Push local stars/unlock to Firestore (one-shot on login) ──
+export const pushLocalProgressToFirestore = async (
+  uid: string,
+  highestLevelUnlocked: number,
+  starsMap: Record<number, number>
+): Promise<void> => {
+  const ref = doc(db, 'users', uid);
+  const levels: Record<string, LevelProgress> = {};
+  Object.entries(starsMap).forEach(([id, stars]) => {
+    if (stars > 0) levels[id] = { stars, bestScore: 0 };
+  });
+  await setDoc(ref, { highestLevelUnlocked, levels }, { merge: true });
+};
+
 // ── Reset all progress (called by "Reset Adventure") ─────────
 export const resetProgress = async (uid: string): Promise<void> => {
   const ref = doc(db, 'users', uid);

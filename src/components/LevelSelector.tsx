@@ -5,6 +5,7 @@ import './LevelSelector.css';
 
 interface LevelSelectorProps {
   highestLevelUnlocked: number;
+  levelStars: Record<number, number>;
   onSelectLevel: (levelId: number) => void;
   onResetProgress: () => void;
 }
@@ -37,6 +38,7 @@ const THEME: Record<AmbientTheme, ChapterTheme> = {
 
 export const LevelSelector: React.FC<LevelSelectorProps> = ({
   highestLevelUnlocked,
+  levelStars,
   onSelectLevel,
   onResetProgress,
 }) => {
@@ -129,7 +131,7 @@ export const LevelSelector: React.FC<LevelSelectorProps> = ({
                   const isLocked    = id > highestLevelUnlocked;
                   const hasConfig   = !!LEVELS[id];
                   const isPlayable  = !isLocked && hasConfig;
-                  const stars = parseInt(localStorage.getItem(`royal_rescue_stars_level_${id}`) || '0');
+                  const stars = levelStars[id] ?? 0;
                   const isHovered = hoveredLevel === id;
 
                   let nodeBg: string;

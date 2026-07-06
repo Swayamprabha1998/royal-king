@@ -4,6 +4,7 @@ import type { GridState, LevelConfig, TileType } from '../services/boardLogic';
 import {
   loadProgress,
   saveLevelProgress,
+  pushLocalProgressToFirestore,
   resetProgress as resetFirestoreProgress,
 } from '../services/progressService';
 import { 
@@ -39,21 +40,43 @@ export function useGameState(uid?: string) {
   const [highestLevelUnlocked, setHighestLevelUnlocked] = useState<number>(getSavedUnlockedLevel());
   const [isSoundEnabled, setIsSoundEnabled] = useState(true);
 
+  // Load initial stars from localStorage into React state
+  const getInitialStars = (): Record<number, number> => {
+    const map: Record<number, number> = {};
+    for (let i = 1; i <= 30; i++) {
+      const s = parseInt(localStorage.getItem(`royal_rescue_stars_level_${i}`) || '0');
+      if (s > 0) map[i] = s;
+    }
+    return map;
+  };
+  const [levelStars, setLevelStars] = useState<Record<number, number>>(getInitialStars);
+
   // ── Hydrate progress from Firestore when user logs in ────────
   useEffect(() => {
     if (!uid) return;
     loadProgress(uid).then(progress => {
-      // Sync Firestore → localStorage → React state
-      const highest = Math.max(progress.highestLevelUnlocked, getSavedUnlockedLevel());
+      const localHighest = getSavedUnlockedLevel();
+      const highest = Math.max(progress.highestLevelUnlocked, localHighest);
       setHighestLevelUnlocked(highest);
       localStorage.setItem('royal_rescue_unlocked_level', highest.toString());
 
+      // Merge Firestore + local stars
+      const merged: Record<number, number> = { ...getInitialStars() };
       Object.entries(progress.levels).forEach(([levelId, data]) => {
-        const key = `royal_rescue_stars_level_${levelId}`;
-        const local = parseInt(localStorage.getItem(key) || '0');
-        const best  = Math.max(data.stars, local);
-        localStorage.setItem(key, best.toString());
+        const id = parseInt(levelId);
+        const best = Math.max(data.stars, merged[id] ?? 0);
+        if (best > 0) {
+          merged[id] = best;
+          localStorage.setItem(`royal_rescue_stars_level_${levelId}`, best.toString());
+        }
       });
+      setLevelStars(merged);
+
+      // If local was ahead of Firestore, push merged data up so other devices see it
+      const firestoreHighest = progress.highestLevelUnlocked;
+      if (localHighest > firestoreHighest) {
+        pushLocalProgressToFirestore(uid, highest, merged).catch(console.error);
+      }
     }).catch(console.error);
   }, [uid]);
   const [floatingCoins, setFloatingCoins] = useState<{ id: string; r: number; c: number; value: number }[]>([]);
@@ -180,6 +203,10 @@ export function useGameState(uid?: string) {
           : 1;
 
       localStorage.setItem(`royal_rescue_stars_level_${currentLevelId}`, starsEarned.toString());
+      setLevelStars(prev => ({
+        ...prev,
+        [currentLevelId]: Math.max(starsEarned, prev[currentLevelId] ?? 0),
+      }));
 
       // Unlock next level (up to level 30)
       const nextLevel = Math.min(30, currentLevelId + 1);
@@ -746,6 +773,7 @@ export function useGameState(uid?: string) {
         localStorage.removeItem(`royal_rescue_stars_level_${i}`);
       }
       setHighestLevelUnlocked(1);
+      setLevelStars({});
       setCurrentLevelId(1);
       setLevelConfig(LEVELS[1]);
       // Reset in Firestore too
@@ -767,6 +795,7 @@ export function useGameState(uid?: string) {
     selectedTile,
     isBoardLocked,
     highestLevelUnlocked,
+    levelStars,
     isSoundEnabled,
     selectLevel,
     startLevel,

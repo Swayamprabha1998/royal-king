@@ -113,6 +113,7 @@ const App: React.FC = () => {
     selectedTile,
     isBoardLocked,
     highestLevelUnlocked,
+    levelStars,
     isSoundEnabled,
     selectLevel,
     startLevel,
@@ -287,6 +288,7 @@ const App: React.FC = () => {
         {gameState === 'menu' ? (
           <LevelSelector
             highestLevelUnlocked={highestLevelUnlocked}
+            levelStars={levelStars}
             onSelectLevel={selectLevelWithIntro}
             onResetProgress={resetProgress}
           />
