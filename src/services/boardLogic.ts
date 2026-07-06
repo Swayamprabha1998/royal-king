@@ -295,17 +295,19 @@ export const LEVELS: Record<number, LevelConfig> = {
   16: {
     id: 16,
     name: 'The First Shadow',
-    targetCoins: 36,
+    targetCoins: 44,
     initialWaterLevel: 3,
     waterRiseRate: 3.9,
-    movesLimit: 26,
+    movesLimit: 25,
     hasAlgae: true,
     hasValves: true,
     algaeCount: 10,
     frozenCount: 6,
+    hasCursed: true,
+    cursedCount: 3,
     tutorialText: [
       "The dream has turned dark. The sorcerer's influence is everywhere — algae grows faster and the light is failing.",
-      "Stay calm. The rules have not changed. Match, clear, drain. Push the shadow back."
+      "Stay calm. The rules have not changed. Watch out for ice, dark algae, and cursed skulls in the shadows!"
     ]
   },
   17: {
