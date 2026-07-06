@@ -191,7 +191,7 @@ const App: React.FC = () => {
     return <AuthScreen onAuthSuccess={() => {/* onAuthStateChanged fires automatically */}} />;
   }
 
-  // Chapter intro overlay — rendered over everything
+  // Chapter intro overlay — fullscreen, no header
   if (chapterIntroChapter) {
     return (
       <div className="app-viewport">
@@ -203,6 +203,38 @@ const App: React.FC = () => {
             setPendingLevelStart(null);
             start?.();
           }}
+        />
+      </div>
+    );
+  }
+
+  // Chapter seal screen — fullscreen, no header (chapters 1–5 finale)
+  if (gameState === 'victory' && isLastLevelOfChapter(currentLevelId) && currentLevelId !== 30) {
+    return (
+      <div className="app-viewport">
+        <ChapterSealScreen
+          completedChapterNumber={getChapterForLevel(currentLevelId)?.chapterNumber ?? 1}
+          score={score}
+          movesRemaining={movesRemaining}
+          coinsCollected={coinsCollected}
+          targetCoins={levelConfig.targetCoins}
+          onNextLevel={() => selectLevelWithIntro(currentLevelId + 1)}
+          onBackToMap={() => setGameState('menu')}
+        />
+      </div>
+    );
+  }
+
+  // Queen awakening — fullscreen, no header (level 30 finale)
+  if (gameState === 'victory' && currentLevelId === 30) {
+    return (
+      <div className="app-viewport">
+        <QueenAwakeningScreen
+          score={score}
+          movesRemaining={movesRemaining}
+          coinsCollected={coinsCollected}
+          onRestartGame={() => { localStorage.clear(); window.location.reload(); }}
+          onRevisitMap={() => setGameState('menu')}
         />
       </div>
     );
@@ -384,43 +416,17 @@ const App: React.FC = () => {
               ) : null;
             })()}
 
-            {/* 3. Victory — Narrative Closure Panel */}
-            {gameState === 'victory' && (
-              currentLevelId === 30 ? (
-                /* Final chapter — full Queen Awakening cinematic */
-                <QueenAwakeningScreen
-                  score={score}
-                  movesRemaining={movesRemaining}
-                  coinsCollected={coinsCollected}
-                  onRestartGame={() => {
-                    localStorage.clear();
-                    window.location.reload();
-                  }}
-                  onRevisitMap={() => setGameState('menu')}
-                />
-              ) : isLastLevelOfChapter(currentLevelId) ? (
-                /* Chapter 1–5 final level — seal activation screen */
-                <ChapterSealScreen
-                  completedChapterNumber={getChapterForLevel(currentLevelId)?.chapterNumber ?? 1}
-                  score={score}
-                  movesRemaining={movesRemaining}
-                  coinsCollected={coinsCollected}
-                  targetCoins={levelConfig.targetCoins}
-                  onNextLevel={() => selectLevelWithIntro(currentLevelId + 1)}
-                  onBackToMap={() => setGameState('menu')}
-                />
-              ) : (
-                /* Mid-chapter levels — standard closure panel */
-                <LevelClosurePanel
-                  levelId={currentLevelId}
-                  score={score}
-                  movesRemaining={movesRemaining}
-                  coinsCollected={coinsCollected}
-                  targetCoins={levelConfig.targetCoins}
-                  onNextLevel={() => selectLevelWithIntro(currentLevelId + 1)}
-                  onBackToMap={() => setGameState('menu')}
-                />
-              )
+            {/* 3. Victory — Mid-chapter closure panel only (chapter/final endings are fullscreen above) */}
+            {gameState === 'victory' && !isLastLevelOfChapter(currentLevelId) && (
+              <LevelClosurePanel
+                levelId={currentLevelId}
+                score={score}
+                movesRemaining={movesRemaining}
+                coinsCollected={coinsCollected}
+                targetCoins={levelConfig.targetCoins}
+                onNextLevel={() => selectLevelWithIntro(currentLevelId + 1)}
+                onBackToMap={() => setGameState('menu')}
+              />
             )}
           </div>
         )}
