@@ -203,14 +203,14 @@ export const LEVELS: Record<number, LevelConfig> = {
   11: {
     id: 11,
     name: 'The Harbour Departure',
-    targetCoins: 30,
+    targetCoins: 34,
     initialWaterLevel: 2,
     waterRiseRate: 3.2,
-    movesLimit: 28,
+    movesLimit: 27,
     hasAlgae: false,
     hasValves: true,
     algaeCount: 0,
-    frozenCount: 8,
+    frozenCount: 9,
     tutorialText: [
       "The harbour cobblestones are glazing over. Ice crystals are locking gems in place — you cannot swap a frozen gem; match beside it to crack the ice.",
       "The cold is spreading through the dream. Keep clearing and keep the harbour alive."
