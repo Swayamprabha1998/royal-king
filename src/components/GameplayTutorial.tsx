@@ -20,7 +20,10 @@ export const GameplayTutorial: React.FC<GameplayTutorialProps> = ({
 }) => {
   const isLastStep = activeIndex === tutorialText.length - 1;
   const overlayRef = useRef<HTMLDivElement>(null);
+  const bubbleRef = useRef<HTMLDivElement>(null);
   const [highlightStyle, setHighlightStyle] = useState<React.CSSProperties>({ opacity: 0 });
+  const [bubbleStyle, setBubbleStyle] = useState<React.CSSProperties>({});
+  const [dynamicArrowClass, setDynamicArrowClass] = useState<string>('');
 
   // 1. Determine the highlight target name and bubble layout classes
   const getTutorialTarget = (): { name: string; positionClass: string; arrowClass: string } => {
@@ -47,23 +50,35 @@ export const GameplayTutorial: React.FC<GameplayTutorialProps> = ({
     }
 
     if (levelId === 9) {
-      return { name: 'cursed-tile', positionClass: 'pos-board', arrowClass: 'arrow-down' };
+      if (activeIndex === 1) {
+        return { name: 'cursed-tile', positionClass: 'pos-board', arrowClass: 'arrow-down' };
+      }
+      return { name: 'none', positionClass: 'pos-center', arrowClass: 'arrow-none' };
     }
 
     if (levelId === 13) {
-      return { name: 'chain-breaker', positionClass: 'pos-board', arrowClass: 'arrow-down' };
+      if (activeIndex === 1) {
+        return { name: 'chain-breaker', positionClass: 'pos-board', arrowClass: 'arrow-down' };
+      }
+      return { name: 'none', positionClass: 'pos-center', arrowClass: 'arrow-none' };
     }
 
     if (levelId === 17) {
-      return { name: 'shadow-vault', positionClass: 'pos-board', arrowClass: 'arrow-down' };
+      if (activeIndex === 0) {
+        return { name: 'shadow-vault', positionClass: 'pos-board', arrowClass: 'arrow-down' };
+      }
+      return { name: 'none', positionClass: 'pos-center', arrowClass: 'arrow-none' };
     }
 
     if (levelId === 21) {
-      return { name: 'dark-valve', positionClass: 'pos-board', arrowClass: 'arrow-down' };
+      if (activeIndex === 0) {
+        return { name: 'dark-valve', positionClass: 'pos-board', arrowClass: 'arrow-down' };
+      }
+      return { name: 'none', positionClass: 'pos-center', arrowClass: 'arrow-none' };
     }
 
     // Default (Level 5+)
-    return { name: 'chamber', positionClass: 'pos-chamber-danger', arrowClass: 'arrow-up' };
+    return { name: 'none', positionClass: 'pos-center', arrowClass: 'arrow-none' };
   };
 
   const target = getTutorialTarget();
@@ -94,38 +109,28 @@ export const GameplayTutorial: React.FC<GameplayTutorialProps> = ({
 
   // 3. Measure DOM boundaries dynamically on mount or when target shifts
   useEffect(() => {
-    const selector = getSelector(target.name);
-    const parentEl = overlayRef.current;
-    const targetEl = selector ? document.querySelector(selector) : null;
+    let active = true;
+    const timer = setTimeout(() => {
+      if (!active) return;
 
-    if (parentEl && targetEl) {
-      const parentRect = parentEl.getBoundingClientRect();
-      const targetRect = targetEl.getBoundingClientRect();
+      const selector = getSelector(target.name);
+      const parentEl = overlayRef.current;
+      const targetEl = selector ? document.querySelector(selector) : null;
+      const bubbleEl = bubbleRef.current;
 
-      // Relative pixel offsets inside the overlay mask
-      const top = targetRect.top - parentRect.top;
-      const left = targetRect.left - parentRect.left;
-      const width = targetRect.width;
-      const height = targetRect.height;
+      const isDynamicTileTarget = target.name === 'cursed-tile' || target.name === 'chain-breaker' || target.name === 'shadow-vault' || target.name === 'dark-valve';
 
-      // Compensate slightly for high-z rings borders
-      setHighlightStyle({
-        top: `${top - 4}px`,
-        left: `${left - 4}px`,
-        width: `${width + 8}px`,
-        height: `${height + 8}px`,
-        opacity: 1
-      });
-    } else if (parentEl && (target.name === 'cursed-tile' || target.name === 'chain-breaker' || target.name === 'shadow-vault' || target.name === 'dark-valve')) {
-      const boardEl = document.querySelector('.board-container');
-      if (boardEl) {
+      if (parentEl && targetEl) {
         const parentRect = parentEl.getBoundingClientRect();
-        const boardRect = boardEl.getBoundingClientRect();
-        const top = boardRect.top - parentRect.top;
-        const left = boardRect.left - parentRect.left;
-        const width = boardRect.width;
-        const height = boardRect.height;
+        const targetRect = targetEl.getBoundingClientRect();
 
+        // Relative pixel offsets inside the overlay mask
+        const top = targetRect.top - parentRect.top;
+        const left = targetRect.left - parentRect.left;
+        const width = targetRect.width;
+        const height = targetRect.height;
+
+        // Compensate slightly for high-z rings borders
         setHighlightStyle({
           top: `${top - 4}px`,
           left: `${left - 4}px`,
@@ -133,31 +138,89 @@ export const GameplayTutorial: React.FC<GameplayTutorialProps> = ({
           height: `${height + 8}px`,
           opacity: 1
         });
-      }
-    } else if (parentEl && target.name === 'water-line') {
-      // Fallback: if water-level-line is off-grid or not rendered, highlight lower rows of board
-      const boardEl = document.querySelector('.board-container');
-      if (boardEl) {
-        const parentRect = parentEl.getBoundingClientRect();
-        const boardRect = boardEl.getBoundingClientRect();
-        
-        // Target bottom 4 rows (bottom 50% of the grid)
-        const top = boardRect.top - parentRect.top + (boardRect.height * 0.5);
-        const left = boardRect.left - parentRect.left;
-        const width = boardRect.width;
-        const height = boardRect.height * 0.5;
 
-        setHighlightStyle({
-          top: `${top - 4}px`,
-          left: `${left - 4}px`,
-          width: `${width + 8}px`,
-          height: `${height + 8}px`,
-          opacity: 1
-        });
+        if (isDynamicTileTarget) {
+          const bubbleRect = bubbleEl ? bubbleEl.getBoundingClientRect() : { width: 280, height: 110 };
+          let bubbleLeft = left + (width / 2) - (bubbleRect.width / 2);
+          let bubbleTop = top - bubbleRect.height - 18;
+          let arrowClass = 'arrow-down';
+
+          if (bubbleTop < 10) {
+            bubbleTop = top + height + 18;
+            arrowClass = 'arrow-up';
+          }
+
+          if (bubbleLeft < 10) {
+            bubbleLeft = 10;
+          } else if (bubbleLeft + bubbleRect.width > parentRect.width - 10) {
+            bubbleLeft = parentRect.width - bubbleRect.width - 10;
+          }
+
+          setBubbleStyle({
+            top: `${bubbleTop}px`,
+            left: `${bubbleLeft}px`,
+            transform: 'none',
+            opacity: 1
+          });
+          setDynamicArrowClass(arrowClass);
+        } else {
+          setBubbleStyle({});
+          setDynamicArrowClass('');
+        }
+      } else if (parentEl && isDynamicTileTarget) {
+        const boardEl = document.querySelector('.board-container');
+        if (boardEl) {
+          const parentRect = parentEl.getBoundingClientRect();
+          const boardRect = boardEl.getBoundingClientRect();
+          const top = boardRect.top - parentRect.top;
+          const left = boardRect.left - parentRect.left;
+          const width = boardRect.width;
+          const height = boardRect.height;
+
+          setHighlightStyle({
+            top: `${top - 4}px`,
+            left: `${left - 4}px`,
+            width: `${width + 8}px`,
+            height: `${height + 8}px`,
+            opacity: 1
+          });
+        }
+        setBubbleStyle({});
+        setDynamicArrowClass('');
+      } else if (parentEl && target.name === 'water-line') {
+        // Fallback: if water-level-line is off-grid or not rendered, highlight lower rows of board
+        const boardEl = document.querySelector('.board-container');
+        if (boardEl) {
+          const parentRect = parentEl.getBoundingClientRect();
+          const boardRect = boardEl.getBoundingClientRect();
+          
+          // Target bottom 4 rows (bottom 50% of the grid)
+          const top = boardRect.top - parentRect.top + (boardRect.height * 0.5);
+          const left = boardRect.left - parentRect.left;
+          const width = boardRect.width;
+          const height = boardRect.height * 0.5;
+
+          setHighlightStyle({
+            top: `${top - 4}px`,
+            left: `${left - 4}px`,
+            width: `${width + 8}px`,
+            height: `${height + 8}px`,
+            opacity: 1
+          });
+        }
+        setBubbleStyle({});
+        setDynamicArrowClass('');
+      } else {
+        setHighlightStyle({ opacity: 0 });
+        setBubbleStyle({});
+        setDynamicArrowClass('');
       }
-    } else {
-      setHighlightStyle({ opacity: 0 });
-    }
+    }, 150);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, [target.name, activeIndex, levelId]);
 
   return (
@@ -169,7 +232,11 @@ export const GameplayTutorial: React.FC<GameplayTutorialProps> = ({
       />
 
       {/* 2. Floating Speech Bubble Tooltip */}
-      <div className={`speech-bubble ${target.positionClass} ${target.arrowClass}`}>
+      <div 
+        ref={bubbleRef}
+        className={`speech-bubble ${target.positionClass} ${dynamicArrowClass || target.arrowClass}`}
+        style={bubbleStyle}
+      >
         <div className="speech-body">
           <p>{tutorialText[activeIndex]}</p>
         </div>

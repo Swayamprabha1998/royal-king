@@ -334,49 +334,62 @@ export const LEVELS: Record<number, LevelConfig> = {
   18: {
     id: 18,
     name: 'Shattered Palace',
-    targetCoins: 42,
+    targetCoins: 52,
     initialWaterLevel: 3,
     waterRiseRate: 4.3,
-    movesLimit: 25,
+    movesLimit: 24,
     hasAlgae: true,
     hasValves: true,
-    algaeCount: 12,
+    algaeCount: 8,
     frozenCount: 10,
+    hasCursed: true,
+    cursedCount: 4,
+    hasShadowVault: true,
+    shadowVaultCount: 6,
     tutorialText: [
-      "The palace has been twisted — walls at wrong angles, flooding from above, obstacles piled on top of each other.",
-      "Don't try to plan too far ahead. React to what the board gives you and keep moving."
+      "The palace is collapsing. Clustered Shadow Vaults and cursed skull tiles block the bottom of the board where gems fall.",
+      "Clear these obstacles quickly to keep the board sliding, or you will run out of matches!"
     ]
   },
   19: {
     id: 19,
     name: 'The Dark Mirror',
-    targetCoins: 44,
+    targetCoins: 56,
     initialWaterLevel: 3,
     waterRiseRate: 4.5,
     movesLimit: 24,
     hasAlgae: true,
     hasValves: true,
-    algaeCount: 12,
+    algaeCount: 10,
     frozenCount: 12,
+    hasCursed: true,
+    cursedCount: 4,
+    hasShadowVault: true,
+    shadowVaultCount: 4,
     tutorialText: [
-      "The false king blocks every path — algae and ice lock the centre of the board. Power-ups are your best weapon here.",
-      "Match 4 or 5 to forge Blasters, Bombs, or Lightning. Use them to shatter the dark mirror."
+      "In the dark mirror, the flood rises rapidly. Dark algae, ice, cursed skulls, and shadow vaults lock the board down.",
+      "The false king blocks every path. Match special items and combine power-ups to sweep the board clean!"
     ]
   },
   20: {
     id: 20,
     name: 'The Nightmare Seal',
-    targetCoins: 48,
+    targetCoins: 60,
     initialWaterLevel: 3,
     waterRiseRate: 4.8,
-    movesLimit: 24,
+    movesLimit: 21,
     hasAlgae: true,
     hasValves: true,
-    algaeCount: 14,
+    algaeCount: 12,
     frozenCount: 14,
+    hasCursed: true,
+    cursedCount: 4,
+    hasShadowVault: true,
+    shadowVaultCount: 5,
+    hasChainBreaker: true,
     tutorialText: [
-      "The fourth seal is buried at the nightmare's deepest point. Every obstacle at full strength — this is the hardest board yet.",
-      "You have faced all of this before. Use everything you know. The nightmare ends here."
+      "The fourth seal is locked deep in the Nightmare. Fast-rising water, shadow vaults, ice, algae, and cursed skulls block all paths.",
+      "This is the Chapter 4 Climax. Unlock the Chain Breakers, clear the curses, shatter the vaults, and shatter the Nightmare Seal!"
     ]
   },
 

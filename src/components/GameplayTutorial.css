@@ -10,6 +10,11 @@
   overflow: hidden; /* Hide the massive box-shadow outside the app viewport */
 }
 
+/* Fallback: dark backdrop when there is no highlighted target tile */
+.tutorial-stencil-overlay.target-none {
+  background-color: rgba(8, 10, 13, 0.65);
+}
+
 /* Glowing Highlight ring overlays */
 .glowing-highlight-ring {
   position: absolute;
@@ -115,7 +120,8 @@
 }
 
 /* Arrow pointers pointing to targets */
-.speech-bubble::after {
+.speech-bubble.arrow-up::after,
+.speech-bubble.arrow-down::after {
   content: "";
   position: absolute;
   border-width: 8px;
@@ -177,6 +183,19 @@
   --bx: -50%;
   top: 264px;
   left: 50%;
+}
+
+.pos-center {
+  --bx: -50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: bubble-bob-center-anim 3s ease-in-out infinite alternate;
+}
+
+@keyframes bubble-bob-center-anim {
+  0% { transform: translate(-50%, -50%); }
+  100% { transform: translate(-50%, calc(-50% - 5px)); }
 }
 
 /* Adjust speech bubble positions and bob translations in desktop */
