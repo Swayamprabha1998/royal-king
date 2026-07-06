@@ -199,7 +199,8 @@ export function useGameState() {
         powerUpsToSpawn,
         crackedIceCoords,
         clearedAlgaeCoords,
-        clearedCursedCoords
+        clearedCursedCoords,
+        damagedShadowVaults
       } = scanMatches(currentGrid);
 
       if (matches.length > 0) {
@@ -336,6 +337,32 @@ export function useGameState() {
           if (currentGrid[r][c] && currentGrid[r][c]!.cursed) {
             currentGrid[r][c]!.cursed = false;
             cursesTriggeredCount++;
+          }
+        });
+
+        // Resolve hits to Shadow Vaults
+        const uniqueVaultHits = new Set<string>();
+        damagedShadowVaults.forEach(({ r, c }) => {
+          uniqueVaultHits.add(`${r}_${c}`);
+        });
+
+        uniqueVaultHits.forEach(coordStr => {
+          const [r, c] = coordStr.split('_').map(Number);
+          const cell = currentGrid[r][c];
+          if (cell && cell.shadowVault && cell.shadowVault > 0) {
+            cell.shadowVault -= 1;
+            gameAudio.playClick();
+
+            if (cell.shadowVault === 0) {
+              currentGrid[r][c] = null;
+              totalScoreThisTurn += 100;
+              newBroken.push({
+                id: `vault_break_${r}_${c}_${Date.now()}`,
+                r,
+                c,
+                type: 'amethyst' // purple obsidian shard effect
+              });
+            }
           }
         });
 
@@ -586,7 +613,7 @@ export function useGameState() {
     if (isBoardLocked || gameState !== 'playing') return;
 
     const cell = grid[r][c];
-    if (!cell || cell.algae || cell.frozen || cell.cursed) return; // cannot select locked/ice/cursed tiles
+    if (!cell || cell.algae || cell.frozen || cell.cursed || cell.shadowVault) return; // cannot select locked/ice/cursed/vault tiles
 
     if (selectedTile) {
       if (selectedTile.r === r && selectedTile.c === c) {

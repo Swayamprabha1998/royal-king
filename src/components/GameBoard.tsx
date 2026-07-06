@@ -509,6 +509,41 @@ export const GameBoard: React.FC<GameBoardProps> = ({
     );
   };
 
+  const renderShadowVaultIcon = (health: number) => {
+    return (
+      <svg viewBox="0 0 40 40" className={`tile-svg shadow-vault-svg gem-3d ${health === 1 ? 'vault-cracked' : ''}`}>
+        <defs>
+          <linearGradient id="vault-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#4c1d95" />
+            <stop offset="50%" stopColor="#1e1b4b" />
+            <stop offset="100%" stopColor="#030712" />
+          </linearGradient>
+        </defs>
+        {/* Main Vault Block */}
+        <rect x="5" y="5" width="30" height="30" rx="4" fill="url(#vault-grad)" stroke="#312e81" strokeWidth="1.8" />
+        {/* Inner panel */}
+        <rect x="9" y="9" width="22" height="22" rx="2" fill="none" stroke="#4f46e5" strokeWidth="1.2" strokeDasharray="3,1" />
+        {/* Core glowing eye/seal */}
+        <circle cx="20" cy="20" r="5" fill="#1e1b4b" stroke="#6366f1" strokeWidth="1" />
+        <circle cx="20" cy="20" r="2.5" fill="#a855f7" />
+        {/* Shading/3D lighting */}
+        <path d="M5,5 L35,5 L31,9 L9,9 Z" fill="rgba(255,255,255,0.12)" />
+        <path d="M5,5 L5,35 L9,31 L9,9 Z" fill="rgba(255,255,255,0.06)" />
+        <path d="M5,35 L35,35 L31,31 L9,31 Z" fill="rgba(0,0,0,0.3)" />
+        <path d="M35,5 L35,35 L31,31 L31,9 Z" fill="rgba(0,0,0,0.15)" />
+
+        {/* Crack lines overlays if health is 1 */}
+        {health === 1 && (
+          <g stroke="#c084fc" strokeWidth="1.5" strokeLinecap="round" fill="none">
+            <path d="M8,10 L15,18 L13,24" />
+            <path d="M32,30 L25,22 L27,15" />
+            <path d="M12,28 L21,23 L22,32" />
+          </g>
+        )}
+      </svg>
+    );
+  };
+
   // Touch handlers for mobile swiping
   const handleTouchStart = (e: React.TouchEvent, r: number, c: number) => {
     if (isBoardLocked) return;
@@ -922,8 +957,8 @@ export const GameBoard: React.FC<GameBoardProps> = ({
                 onMouseDown={(e) => handleMouseDown(e, r, c)}
                 onTouchStart={(e) => handleTouchStart(e, r, c)}
               >
-                <div className={cell.cursed ? 'tile-icon-container cursed-skull-tile' : cell.powerUp ? `tile-icon-container powerup-tile powerup-tile--${cell.powerUp}` : `tile-icon-container ${cell.type}`}>
-                  {cell.cursed ? renderCursedSkullIcon() : cell.powerUp ? renderPowerUpIcon(cell.powerUp) : renderTileIcon(cell.type)}
+                <div className={cell.shadowVault ? 'tile-icon-container shadow-vault-tile' : cell.cursed ? 'tile-icon-container cursed-skull-tile' : cell.powerUp ? `tile-icon-container powerup-tile powerup-tile--${cell.powerUp}` : `tile-icon-container ${cell.type}`}>
+                  {cell.shadowVault ? renderShadowVaultIcon(cell.shadowVault) : cell.cursed ? renderCursedSkullIcon() : cell.powerUp ? renderPowerUpIcon(cell.powerUp) : renderTileIcon(cell.type)}
                 </div>
 
                 {/* Ice wrapper blocks — Icicle Drip style */}

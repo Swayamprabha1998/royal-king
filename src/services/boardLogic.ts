@@ -16,6 +16,7 @@ export interface CellState {
   frozen?: boolean; // Ice blocker (cannot swap tile, match adjacent/directly to crack)
   cursed?: boolean; // Cursed blocker (cannot swap tile, match adjacent, clear freezes 2 random gems)
   powerUp?: 'blast_row' | 'blast_col' | 'bomb' | 'lightning' | 'chain_breaker'; // Special items
+  shadowVault?: number; // Shadow Vault block health (2 = full, 1 = cracked)
   isNew?: boolean; // Highlight flag
 }
 
@@ -35,6 +36,8 @@ export interface LevelConfig {
   hasCursed?: boolean;       // Support for cursed tiles
   cursedCount?: number;      // Number of cursed tiles to inject
   hasChainBreaker?: boolean; // Support for chain breaker powerups
+  hasShadowVault?: boolean;  // Support for shadow vaults
+  shadowVaultCount?: number; // Number of shadow vaults to inject
   tutorialText: string[];
 }
 
@@ -313,17 +316,19 @@ export const LEVELS: Record<number, LevelConfig> = {
   17: {
     id: 17,
     name: "The Sorcerer's Mark",
-    targetCoins: 39,
+    targetCoins: 48,
     initialWaterLevel: 3,
     waterRiseRate: 4.1,
     movesLimit: 25,
     hasAlgae: true,
     hasValves: true,
-    algaeCount: 12,
-    frozenCount: 8,
+    algaeCount: 8,
+    frozenCount: 6,
+    hasShadowVault: true,
+    shadowVaultCount: 4,
     tutorialText: [
-      "The dark sigils spread like algae and freeze like ice — the two obstacles lock gems in a double grip here.",
-      "Clear one layer, then the other. No single move does nothing."
+      "The Sorcerer's Mark has materialized as dark Shadow Vaults. These immovable obsidian blocks absorb matches.",
+      "It takes two adjacent matches (or power-up hits) to shatter them. Shattering them opens the board and awards score bonuses!"
     ]
   },
   18: {
@@ -618,6 +623,20 @@ export function createInitialBoard(level: LevelConfig): GridState {
     }
   }
 
+  // Step 3.8: Inject Shadow Vaults (driven by shadowVaultCount field)
+  if (level.hasShadowVault && level.shadowVaultCount && level.shadowVaultCount > 0) {
+    let vaultsPlaced = 0;
+    while (vaultsPlaced < level.shadowVaultCount) {
+      const r = Math.floor(Math.random() * 4) + 2;
+      const c = Math.floor(Math.random() * 8);
+      const cell = grid[r][c];
+      if (cell && !cell.algae && !cell.frozen && !cell.cursed && !cell.shadowVault) {
+        cell.shadowVault = 2; // Full health (2 hits)
+        vaultsPlaced++;
+      }
+    }
+  }
+
   // Step 4: Inject Heavy Iron Boulders (Levels 6, 8)
   if (level.id === 6 || level.id === 8) {
     let bouldersPlaced = 0;
@@ -687,6 +706,7 @@ export function scanMatches(grid: GridState): {
   crackedIceCoords: { r: number; c: number }[];
   clearedAlgaeCoords: { r: number; c: number }[];
   clearedCursedCoords: { r: number; c: number }[];
+  damagedShadowVaults: { r: number; c: number }[];
 } {
   const rows = 8;
   const cols = 8;
@@ -700,11 +720,12 @@ export function scanMatches(grid: GridState): {
   const crackedIceCoords: { r: number; c: number }[] = [];
   const clearedAlgaeCoords: { r: number; c: number }[] = [];
   const clearedCursedCoords: { r: number; c: number }[] = [];
+  const damagedShadowVaults: { r: number; c: number }[] = [];
 
   // Helper to check if tile is matchable (boulders are not matchable!)
   const isMatchable = (r: number, c: number) => {
     const cell = grid[r][c];
-    return cell && cell.type !== 'boulder' && cell.type !== 'valve';
+    return cell && cell.type !== 'boulder' && cell.type !== 'valve' && !cell.shadowVault;
   };
 
   // 1. Horizontal scans
@@ -933,6 +954,11 @@ export function scanMatches(grid: GridState): {
       if (cell.cursed && (matchMask[r][c] || adjacentToMatch(r, c))) {
         clearedCursedCoords.push({ r, c });
       }
+
+      // Match next to or on Shadow Vault damages it
+      if (cell.shadowVault && (matchMask[r][c] || adjacentToMatch(r, c))) {
+        damagedShadowVaults.push({ r, c });
+      }
     }
   }
 
@@ -956,7 +982,8 @@ export function scanMatches(grid: GridState): {
     powerUpsToSpawn,
     crackedIceCoords,
     clearedAlgaeCoords,
-    clearedCursedCoords
+    clearedCursedCoords,
+    damagedShadowVaults
   };
 }
 
@@ -973,7 +1000,7 @@ export function swapTiles(grid: GridState, r1: number, c1: number, r2: number, c
   if (!cell1 || !cell2) return null;
 
   // Locked blocks cannot be manually swapped!
-  if (cell1.algae || cell2.algae || cell1.frozen || cell2.frozen || cell1.cursed || cell2.cursed) return null;
+  if (cell1.algae || cell2.algae || cell1.frozen || cell2.frozen || cell1.cursed || cell2.cursed || cell1.shadowVault || cell2.shadowVault) return null;
 
   const newGrid = grid.map(row => [...row]);
   newGrid[r1][c1] = cell2;
@@ -1026,7 +1053,7 @@ export function applyBuoyancyAndGravity(grid: GridState, waterLevelRow: number, 
 
       for (let r = 0; r < waterLevelRow; r++) {
         const cell = newGrid[r][c];
-        if (cell && (cell.algae || cell.cursed)) {
+        if (cell && (cell.algae || cell.cursed || cell.shadowVault)) {
           algaeRows.add(r); // fixed — never moved
         } else if (cell) {
           freeTiles.push(cell); // moveable tile
@@ -1061,7 +1088,7 @@ export function applyBuoyancyAndGravity(grid: GridState, waterLevelRow: number, 
 
       for (let r = waterLevelRow; r < rows; r++) {
         const cell = newGrid[r][c];
-        if (cell && (cell.algae || cell.cursed)) {
+        if (cell && (cell.algae || cell.cursed || cell.shadowVault)) {
           algaeRows.add(r); // fixed
         } else if (cell) {
           if (cell.type === 'boulder') {
