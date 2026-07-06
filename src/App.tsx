@@ -241,6 +241,11 @@ const App: React.FC = () => {
                 </div>
               </div>
 
+              <div className="hud-metric level-metric">
+                <div className="metric-label">LEVEL</div>
+                <div className="metric-value">{currentLevelId}</div>
+              </div>
+
               <div className="hud-metric moves-metric">
                 <div className="metric-label">MOVES LEFT</div>
                 <div className="metric-value">{movesRemaining}</div>
