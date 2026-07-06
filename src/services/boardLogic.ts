@@ -255,33 +255,39 @@ export const LEVELS: Record<number, LevelConfig> = {
   14: {
     id: 14,
     name: 'Frozen Decks',
-    targetCoins: 40,
+    targetCoins: 46,
     initialWaterLevel: 3,
     waterRiseRate: 4.0,
-    movesLimit: 25,
+    movesLimit: 24,
     hasAlgae: true,
     hasValves: true,
     algaeCount: 7,
     frozenCount: 14,
+    hasCursed: true,
+    cursedCount: 3,
+    hasChainBreaker: true,
     tutorialText: [
-      "The decks are glazed solid. Almost every plank is locked. This is the hardest freeze yet.",
-      "Find the open gems and chain your matches. Every cleared tile opens another path."
+      "The decks are glazed solid. Ice, dark algae, and cursed skulls lock almost every gem in place.",
+      "Work strategically — use matches to trigger Chain Breakers, clear the locks, but watch out for the skull curses!"
     ]
   },
   15: {
     id: 15,
     name: 'The Helm Seal',
-    targetCoins: 44,
+    targetCoins: 50,
     initialWaterLevel: 3,
     waterRiseRate: 4.4,
-    movesLimit: 24,
+    movesLimit: 23,
     hasAlgae: true,
     hasValves: true,
     algaeCount: 8,
     frozenCount: 14,
+    hasCursed: true,
+    cursedCount: 4,
+    hasChainBreaker: true,
     tutorialText: [
-      "The third seal is locked in ice at the ship's helm. Ice, algae, and fast-rising water all at once.",
-      "This is the coldest board you will face. Break it open — the image of her at the helm will carry you through."
+      "The third seal is locked in ice at the ship's helm. Ice, algae, cursed skulls, and fast-rising water all stand in your way.",
+      "This is the Chapter 3 Finale. Match quickly, unlock the Chain Breakers, clear the curses, and shatter the Helm Seal before you drown!"
     ]
   },
 
